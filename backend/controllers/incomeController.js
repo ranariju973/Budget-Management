@@ -37,7 +37,7 @@ const createIncome = async (req, res) => {
     const income = await Income.findOneAndUpdate(
       { userId: req.user._id, month, year },
       { amount },
-      { new: true, upsert: true, runValidators: true }
+      { returnDocument: 'after', upsert: true, runValidators: true }
     );
 
     res.status(201).json(income);

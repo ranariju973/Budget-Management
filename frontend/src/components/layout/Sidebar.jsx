@@ -48,7 +48,7 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
         {/* Brand */}
         <div className="flex items-center justify-between px-5 h-14" style={{ borderBottom: '1px solid var(--color-border)' }}>
           <span className="text-sm font-semibold tracking-tight" style={{ color: 'var(--color-text)' }}>
-            Budget
+            FinKart
           </span>
           <button
             onClick={() => setIsOpen(false)}

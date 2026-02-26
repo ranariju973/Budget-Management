@@ -2,6 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const hpp = require('hpp');
+const compression = require('compression');
+const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
@@ -22,6 +24,9 @@ app.set('trust proxy', 1);
 
 // Helmet: sets secure HTTP headers (XSS filter, HSTS, no-sniff, etc.)
 app.use(helmet());
+
+// Gzip/Brotli compression — reduces JSON payload by ~70%
+app.use(compression());
 
 // CORS: restrict origins in production
 const allowedOrigins = process.env.ALLOWED_ORIGINS
@@ -71,6 +76,7 @@ app.use('/api/lends', require('./routes/lendRoutes'));
 app.use('/api/summary', require('./routes/summaryRoutes'));
 app.use('/api/budget-goals', require('./routes/budgetGoalRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
+app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -98,7 +104,25 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
 });
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received. Shutting down gracefully...');
-  server.close(() => process.exit(0));
-});
+// Graceful shutdown — drain connections + close DB
+const gracefulShutdown = (signal) => {
+  console.log(`${signal} received. Shutting down gracefully...`);
+  server.close(async () => {
+    try {
+      await mongoose.connection.close();
+      console.log('MongoDB connection closed.');
+    } catch (err) {
+      console.error('Error closing MongoDB:', err);
+    }
+    process.exit(0);
+  });
+  // Force kill after 10s if connections don't drain
+  setTimeout(() => process.exit(1), 10000);
+};
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+// MongoDB connection events for observability
+mongoose.connection.on('error', (err) => console.error('MongoDB error:', err));
+mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));

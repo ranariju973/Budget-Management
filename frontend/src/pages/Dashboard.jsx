@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import SummaryCards from '../components/dashboard/SummaryCards';
@@ -8,6 +8,7 @@ import BorrowSection from '../components/dashboard/BorrowSection';
 import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
 import SearchResults from '../components/search/SearchResults';
+import ErrorBoundary from '../components/common/ErrorBoundary';
 import { getCurrentMonthYear, monthNames } from '../utils/helpers';
 
 const Dashboard = () => {
@@ -16,14 +17,19 @@ const Dashboard = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { month, year } = getCurrentMonthYear();
-  const triggerRefresh = () => setRefreshKey((k) => k + 1);
+  const triggerRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+  const openSidebar = useCallback(() => setSidebarOpen(true), []);
+  const goToExpenses = useCallback(() => setActiveSection('expenses'), []);
+  const goToBorrowing = useCallback(() => setActiveSection('borrowing'), []);
+  const goToLending = useCallback(() => setActiveSection('lending'), []);
+  const goToDashboard = useCallback(() => setActiveSection('dashboard'), []);
 
-  const sectionProps = { month, year, onDataChange: triggerRefresh };
+  const sectionProps = useMemo(() => ({ month, year, onDataChange: triggerRefresh }), [month, year, triggerRefresh]);
 
   const renderContent = () => {
     switch (activeSection) {
       case 'search':
-        return <SearchResults onClose={() => setActiveSection('dashboard')} />;
+        return <SearchResults onClose={goToDashboard} />;
       case 'expenses':
         return <ExpenseSection {...sectionProps} />;
       case 'borrowing':
@@ -37,9 +43,9 @@ const Dashboard = () => {
           <div className="space-y-5">
             <IncomeSection {...sectionProps} />
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
-              <ExpenseSection {...sectionProps} preview onViewAll={() => setActiveSection('expenses')} />
-              <BorrowSection {...sectionProps} preview onViewAll={() => setActiveSection('borrowing')} />
-              <LendSection {...sectionProps} preview onViewAll={() => setActiveSection('lending')} />
+              <ExpenseSection {...sectionProps} preview onViewAll={goToExpenses} />
+              <BorrowSection {...sectionProps} preview onViewAll={goToBorrowing} />
+              <LendSection {...sectionProps} preview onViewAll={goToLending} />
             </div>
           </div>
         );
@@ -56,7 +62,7 @@ const Dashboard = () => {
       />
 
       <div className="lg:ml-60">
-        <Navbar onMenuClick={() => setSidebarOpen(true)} />
+        <Navbar onMenuClick={openSidebar} />
 
         <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
           {/* Header */}
@@ -75,7 +81,9 @@ const Dashboard = () => {
           <SummaryCards month={month} year={year} refreshKey={refreshKey} />
 
           {/* Sections */}
-          <div className="mt-8">{renderContent()}</div>
+          <ErrorBoundary>
+            <div className="mt-8">{renderContent()}</div>
+          </ErrorBoundary>
         </main>
       </div>
     </div>

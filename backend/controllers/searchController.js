@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Expense = require('../models/Expense');
 const Borrow = require('../models/Borrow');
 const Lend = require('../models/Lend');
@@ -91,20 +92,17 @@ const kWayMerge = (arrays) => {
 
 /**
  * @route   GET /api/search
- * @desc    Unified search across expenses, borrows, lends
+ * @desc    Unified search across expenses, borrows, lends using server-side pagination.
  * @access  Private
  *
+ * Architecture:
+ *  - Uses MongoDB $unionWith aggregation to merge collections server-side
+ *  - $sort + $skip + $limit run on the DB server → only transfers the requested page
+ *  - Eliminates the previous in-memory kWayMerge + slice approach
+ *  - Time: O(N log N) on DB server (indexed), O(page_size) memory in Node.js
+ *
  * Query params:
- *   q        — text query (name / title)
- *   date     — exact date (YYYY-MM-DD)
- *   month    — month number (1-12)
- *   year     — year (e.g. 2026)
- *   from     — range start (YYYY-MM-DD)
- *   to       — range end (YYYY-MM-DD)
- *   type     — filter by collection: expense | borrow | lend (comma-sep, default: all)
- *   page     — pagination page (default: 1)
- *   limit    — results per page (default: 20, max: 100)
- *   sort     — date_asc | date_desc | amount_asc | amount_desc (default: date_desc)
+ *   q, date, month, year, from, to, type, page, limit, sort
  */
 const search = async (req, res) => {
   try {
@@ -117,14 +115,7 @@ const search = async (req, res) => {
     const pageNum = Math.max(1, parseInt(page, 10) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 20));
 
-    // ─── Build shared query filter ───────────────────────────
-    const baseFilter = { userId };
-
-    // Date filter
-    const dateFilter = buildDateFilter({ date, month, year, from, to });
-    if (dateFilter) baseFilter.date = dateFilter;
-
-    // Sort
+    // Sort mapping
     const sortMap = {
       date_desc: { date: -1 },
       date_asc: { date: 1 },
@@ -133,68 +124,119 @@ const search = async (req, res) => {
     };
     const sortOrder = sortMap[sort] || { date: -1 };
 
-    // Which collections to search
-    const types = type
-      ? type.split(',').map((t) => t.trim().toLowerCase())
-      : ['expense', 'borrow', 'lend'];
+    // Which collections to search (O(1) Set lookup)
+    const typeSet = type
+      ? new Set(type.split(',').map((t) => t.trim().toLowerCase()))
+      : new Set(['expense', 'borrow', 'lend']);
 
-    // ─── Build per-collection queries ────────────────────────
-    const queries = [];
+    // ─── Build per-collection match filters ──────────────────
+    const buildExpenseMatch = () => {
+      const match = { userId: new mongoose.Types.ObjectId(userId) };
+      const dateF = buildDateFilter({ date, month, year, from, to });
+      if (dateF) match.date = dateF;
+      if (q) match.title = { $regex: q, $options: 'i' };
+      return match;
+    };
 
-    if (types.includes('expense')) {
-      const expFilter = { ...baseFilter };
+    const buildPersonMatch = () => {
+      const match = { userId: new mongoose.Types.ObjectId(userId) };
+      const dateF = buildDateFilter({ date, month, year, from, to });
+      if (dateF) match.date = dateF;
       if (q) {
-        // Use regex for partial match (like YouTube suggestions)
-        expFilter.title = { $regex: q, $options: 'i' };
-      }
-      queries.push(
-        Expense.find(expFilter).sort(sortOrder).lean()
-          .then((docs) => docs.map((d) => ({ ...d, _type: 'expense', _label: d.title })))
-      );
-    }
-
-    if (types.includes('borrow')) {
-      const borFilter = { ...baseFilter };
-      if (q) {
-        borFilter.$or = [
+        match.$or = [
           { personName: { $regex: q, $options: 'i' } },
           { reason: { $regex: q, $options: 'i' } },
         ];
       }
-      queries.push(
-        Borrow.find(borFilter).sort(sortOrder).lean()
-          .then((docs) => docs.map((d) => ({ ...d, _type: 'borrow', _label: d.personName })))
-      );
+      return match;
+    };
+
+    // ─── Server-side aggregation with $unionWith ─────────────
+    // Strategy: run count + page queries in parallel for efficiency
+    // Each collection projects a common shape { _type, _label, amount, date, ... }
+
+    const pipelines = [];
+
+    // Start with the first active collection, $unionWith the rest
+    if (typeSet.has('expense')) {
+      pipelines.push({
+        collection: 'expenses',
+        match: buildExpenseMatch(),
+        project: {
+          _type: { $literal: 'expense' },
+          _label: '$title',
+          title: 1, amount: 1, date: 1, userId: 1,
+        },
+      });
+    }
+    if (typeSet.has('borrow')) {
+      pipelines.push({
+        collection: 'borrows',
+        match: buildPersonMatch(),
+        project: {
+          _type: { $literal: 'borrow' },
+          _label: '$personName',
+          personName: 1, reason: 1, amount: 1, date: 1, userId: 1,
+        },
+      });
+    }
+    if (typeSet.has('lend')) {
+      pipelines.push({
+        collection: 'lends',
+        match: buildPersonMatch(),
+        project: {
+          _type: { $literal: 'lend' },
+          _label: '$personName',
+          personName: 1, reason: 1, amount: 1, date: 1, userId: 1,
+        },
+      });
     }
 
-    if (types.includes('lend')) {
-      const lndFilter = { ...baseFilter };
-      if (q) {
-        lndFilter.$or = [
-          { personName: { $regex: q, $options: 'i' } },
-          { reason: { $regex: q, $options: 'i' } },
-        ];
-      }
-      queries.push(
-        Lend.find(lndFilter).sort(sortOrder).lean()
-          .then((docs) => docs.map((d) => ({ ...d, _type: 'lend', _label: d.personName })))
-      );
+    if (pipelines.length === 0) {
+      return res.json({ results: [], pagination: { page: 1, limit: limitNum, total: 0, totalPages: 0 } });
     }
 
-    // ─── Execute in parallel ─────────────────────────────────
-    const results = await Promise.all(queries);
+    // Build aggregation pipeline starting from first collection
+    const firstPipeline = pipelines[0];
+    const Model = mongoose.connection.collection(firstPipeline.collection);
 
-    // ─── K-way merge (each array is already sorted by sortOrder) ──
-    const merged = kWayMerge(results);
+    const aggPipeline = [
+      { $match: firstPipeline.match },
+      { $project: firstPipeline.project },
+    ];
 
-    // ─── Pagination ──────────────────────────────────────────
-    const total = merged.length;
+    // $unionWith remaining collections
+    for (let i = 1; i < pipelines.length; i++) {
+      aggPipeline.push({
+        $unionWith: {
+          coll: pipelines[i].collection,
+          pipeline: [
+            { $match: pipelines[i].match },
+            { $project: pipelines[i].project },
+          ],
+        },
+      });
+    }
+
+    // Use $facet for count + paginated data in single DB round-trip
+    aggPipeline.push({
+      $facet: {
+        metadata: [{ $count: 'total' }],
+        data: [
+          { $sort: sortOrder },
+          { $skip: (pageNum - 1) * limitNum },
+          { $limit: limitNum },
+        ],
+      },
+    });
+
+    const [result] = await Model.aggregate(aggPipeline, { maxTimeMS: 5000 }).toArray();
+
+    const total = result.metadata[0]?.total || 0;
     const totalPages = Math.ceil(total / limitNum);
-    const start = (pageNum - 1) * limitNum;
-    const paginated = merged.slice(start, start + limitNum);
 
     res.json({
-      results: paginated,
+      results: result.data,
       pagination: {
         page: pageNum,
         limit: limitNum,

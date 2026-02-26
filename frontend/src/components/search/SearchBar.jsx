@@ -65,13 +65,8 @@ const SearchBar = ({ onSearch, onClose }) => {
       return;
     }
 
-    // First check trie (instant — O(k))
-    const trieResults = trie.search(prefix, 8);
-    if (trieResults.length > 0) {
-      setSuggestions(trieResults);
-    }
-
-    // Then fetch from server for fresh data
+    // Skip redundant trie lookup — handleInputChange already showed instant results
+    // Go straight to server fetch for fresh data
     setLoading(true);
     try {
       const res = await getSuggestions(prefix, 8);
@@ -80,7 +75,7 @@ const SearchBar = ({ onSearch, onClose }) => {
       // Insert server results into trie for future instant lookups
       trie.bulkInsert(serverItems);
 
-      // Re-query trie to get merged + ranked results
+      // Single trie query after merge — the only lookup needed
       const merged = trie.search(prefix, 8);
       setSuggestions(merged.length > 0 ? merged : serverItems.map((s) => ({
         label: s.label,
@@ -88,7 +83,7 @@ const SearchBar = ({ onSearch, onClose }) => {
         frequency: s.count || 1,
       })));
     } catch {
-      // Keep trie results on network error
+      // Keep existing suggestions on network error
     } finally {
       setLoading(false);
     }

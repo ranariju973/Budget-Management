@@ -45,8 +45,10 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 2px; }
 
-* {
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+/* Transitions scoped to theme toggle — avoids chart.js canvas flicker */
+html.theme-transitioning,
+html.theme-transitioning * {
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
 }
 
 input[type="number"]::-webkit-inner-spin-button,

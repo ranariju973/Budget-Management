@@ -34,13 +34,14 @@ const SpendingCharts = ({ month, year }) => {
   }, [month, year]);
 
   // Hooks must be called before any early return (Rules of Hooks)
+  // Read theme CSS vars once on mount — no dependency on chartData
   const { textColor, borderColor: themeBorderColor } = useMemo(() => {
     const styles = getComputedStyle(document.documentElement);
     return {
       textColor: styles.getPropertyValue('--color-text-muted').trim() || '#94a3b8',
       borderColor: styles.getPropertyValue('--color-border').trim() || '#e2e8f0',
     };
-  }, [chartData]);
+  }, []);
 
   if (loading) {
     return (

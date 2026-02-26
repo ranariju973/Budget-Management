@@ -17,7 +17,13 @@ export const ThemeProvider = ({ children }) => {
     }
   }, [darkMode]);
 
-  const toggleTheme = () => setDarkMode((prev) => !prev);
+  const toggleTheme = () => {
+    const root = document.documentElement;
+    root.classList.add('theme-transitioning');
+    setDarkMode((prev) => !prev);
+    // Remove after transition completes
+    setTimeout(() => root.classList.remove('theme-transitioning'), 200);
+  };
 
   return (
     <ThemeContext.Provider value={{ darkMode, toggleTheme }}>

@@ -71,7 +71,7 @@ const createBudgetGoal = async (req, res) => {
       { userId: req.user._id, category, month, year },
       { limit },
       { returnDocument: 'after', upsert: true, runValidators: true }
-    );
+    ).lean();
 
     res.status(201).json(goal);
   } catch (error) {

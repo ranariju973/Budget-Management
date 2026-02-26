@@ -27,4 +27,7 @@ const lendSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Index for fast user+date filtered queries
+lendSchema.index({ userId: 1, date: -1 });
+
 module.exports = mongoose.model('Lend', lendSchema);

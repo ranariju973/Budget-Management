@@ -22,4 +22,7 @@ const expenseSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
+// Index for fast user+date filtered queries
+expenseSchema.index({ userId: 1, date: -1 });
+
 module.exports = mongoose.model('Expense', expenseSchema);

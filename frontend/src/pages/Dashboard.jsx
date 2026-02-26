@@ -6,6 +6,7 @@ import IncomeSection from '../components/dashboard/IncomeSection';
 import ExpenseSection from '../components/dashboard/ExpenseSection';
 import BorrowSection from '../components/dashboard/BorrowSection';
 import LendSection from '../components/dashboard/LendSection';
+import SpendingCharts from '../components/dashboard/SpendingCharts';
 import { getCurrentMonthYear, monthNames } from '../utils/helpers';
 
 const Dashboard = () => {
@@ -26,6 +27,8 @@ const Dashboard = () => {
         return <BorrowSection {...sectionProps} />;
       case 'lending':
         return <LendSection {...sectionProps} />;
+      case 'charts':
+        return <SpendingCharts month={month} year={year} />;
       default:
         return (
           <div className="space-y-5">

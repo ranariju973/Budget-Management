@@ -9,6 +9,7 @@ import {
   FiSun,
   FiMoon,
   FiX,
+  FiPieChart,
 } from 'react-icons/fi';
 
 const navItems = [
@@ -16,6 +17,7 @@ const navItems = [
   { label: 'Expenses', icon: FiCreditCard, section: 'expenses' },
   { label: 'Borrowing', icon: FiArrowDownLeft, section: 'borrowing' },
   { label: 'Lending', icon: FiArrowUpRight, section: 'lending' },
+  { label: 'Analytics', icon: FiPieChart, section: 'charts' },
 ];
 
 const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {

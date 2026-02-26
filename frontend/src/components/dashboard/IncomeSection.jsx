@@ -104,7 +104,7 @@ const IncomeSection = ({ month, year, onDataChange }) => {
             min="0"
             step="0.01"
             autoFocus
-            className="flex-1 max-w-[200px] px-3 py-2 text-sm rounded-lg"
+            className="flex-1 max-w-50 px-3 py-2 text-sm rounded-lg"
             style={{
               backgroundColor: 'var(--color-surface)',
               border: '1px solid var(--color-border-strong)',

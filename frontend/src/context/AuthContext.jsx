@@ -3,9 +3,34 @@ import api from '../services/api';
 
 const AuthContext = createContext();
 
+/**
+ * Decode JWT payload without a library (base64url → JSON)
+ * Returns null if token is invalid or expired
+ */
+const decodeToken = (token) => {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    // Check if token is expired (exp is in seconds)
+    if (payload.exp && payload.exp * 1000 < Date.now()) {
+      return null; // expired
+    }
+    return payload;
+  } catch {
+    return null;
+  }
+};
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
+  const [token, setToken] = useState(() => {
+    const stored = localStorage.getItem('token');
+    // Validate token on init — discard if expired
+    if (stored && !decodeToken(stored)) {
+      localStorage.removeItem('token');
+      return null;
+    }
+    return stored;
+  });
   const [loading, setLoading] = useState(true);
 
   // Hydrate user from token on mount

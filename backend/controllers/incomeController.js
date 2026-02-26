@@ -1,4 +1,5 @@
 const Income = require('../models/Income');
+const { handleError } = require('../utils/errorHandler');
 
 /**
  * @desc    Get income for user (filter by month/year)
@@ -13,10 +14,10 @@ const getIncome = async (req, res) => {
     if (month) query.month = parseInt(month);
     if (year) query.year = parseInt(year);
 
-    const income = await Income.find(query).sort({ year: -1, month: -1 });
+    const income = await Income.find(query).sort({ year: -1, month: -1 }).lean();
     res.json(income);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Income');
   }
 };
 
@@ -33,16 +34,15 @@ const createIncome = async (req, res) => {
       return res.status(400).json({ message: 'Amount, month, and year are required' });
     }
 
-    // Upsert: create if not exists, update if exists
     const income = await Income.findOneAndUpdate(
       { userId: req.user._id, month, year },
       { amount },
       { returnDocument: 'after', upsert: true, runValidators: true }
-    );
+    ).lean();
 
     res.status(201).json(income);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Income');
   }
 };
 
@@ -53,22 +53,19 @@ const createIncome = async (req, res) => {
  */
 const updateIncome = async (req, res) => {
   try {
-    const income = await Income.findById(req.params.id);
+    const updated = await Income.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      { amount: req.body.amount },
+      { returnDocument: 'after', runValidators: true }
+    ).lean();
 
-    if (!income) {
+    if (!updated) {
       return res.status(404).json({ message: 'Income not found' });
     }
 
-    // Verify ownership
-    if (income.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    income.amount = req.body.amount ?? income.amount;
-    const updated = await income.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Income');
   }
 };
 

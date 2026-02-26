@@ -1,4 +1,5 @@
 const Expense = require('../models/Expense');
+const { handleError } = require('../utils/errorHandler');
 
 /**
  * @desc    Get all expenses for user (optionally filter by month/year)
@@ -17,10 +18,10 @@ const getExpenses = async (req, res) => {
       query.date = { $gte: startDate, $lte: endDate };
     }
 
-    const expenses = await Expense.find(query).sort({ date: -1 });
+    const expenses = await Expense.find(query).sort({ date: -1 }).lean();
     res.json(expenses);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Expense');
   }
 };
 
@@ -46,7 +47,7 @@ const createExpense = async (req, res) => {
 
     res.status(201).json(expense);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Expense');
   }
 };
 
@@ -57,25 +58,25 @@ const createExpense = async (req, res) => {
  */
 const updateExpense = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const { title, amount, date } = req.body;
+    const updateFields = {};
+    if (title !== undefined) updateFields.title = title;
+    if (amount !== undefined) updateFields.amount = amount;
+    if (date !== undefined) updateFields.date = date;
 
-    if (!expense) {
+    const updated = await Expense.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      updateFields,
+      { returnDocument: 'after', runValidators: true }
+    ).lean();
+
+    if (!updated) {
       return res.status(404).json({ message: 'Expense not found' });
     }
 
-    if (expense.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    const { title, amount, date } = req.body;
-    expense.title = title ?? expense.title;
-    expense.amount = amount ?? expense.amount;
-    expense.date = date ?? expense.date;
-
-    const updated = await expense.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Expense');
   }
 };
 
@@ -86,20 +87,18 @@ const updateExpense = async (req, res) => {
  */
 const deleteExpense = async (req, res) => {
   try {
-    const expense = await Expense.findById(req.params.id);
+    const deleted = await Expense.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
 
-    if (!expense) {
+    if (!deleted) {
       return res.status(404).json({ message: 'Expense not found' });
     }
 
-    if (expense.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    await expense.deleteOne();
     res.json({ message: 'Expense deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Expense');
   }
 };
 

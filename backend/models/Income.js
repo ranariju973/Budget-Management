@@ -23,7 +23,7 @@ const incomeSchema = new mongoose.Schema({
   },
 }, { timestamps: true });
 
-// Ensure only one income record per user per month/year
+// Ensure only one income record per user per month/year (also serves as index)
 incomeSchema.index({ userId: 1, month: 1, year: 1 }, { unique: true });
 
 module.exports = mongoose.model('Income', incomeSchema);

@@ -1,4 +1,5 @@
 const Borrow = require('../models/Borrow');
+const { handleError } = require('../utils/errorHandler');
 
 /**
  * @desc    Get all borrow records for user (optionally filter by month/year)
@@ -16,10 +17,10 @@ const getBorrows = async (req, res) => {
       query.date = { $gte: startDate, $lte: endDate };
     }
 
-    const borrows = await Borrow.find(query).sort({ date: -1 });
+    const borrows = await Borrow.find(query).sort({ date: -1 }).lean();
     res.json(borrows);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Borrow');
   }
 };
 
@@ -46,7 +47,7 @@ const createBorrow = async (req, res) => {
 
     res.status(201).json(borrow);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Borrow');
   }
 };
 
@@ -57,26 +58,26 @@ const createBorrow = async (req, res) => {
  */
 const updateBorrow = async (req, res) => {
   try {
-    const borrow = await Borrow.findById(req.params.id);
+    const { personName, amount, date, reason } = req.body;
+    const updateFields = {};
+    if (personName !== undefined) updateFields.personName = personName;
+    if (amount !== undefined) updateFields.amount = amount;
+    if (date !== undefined) updateFields.date = date;
+    if (reason !== undefined) updateFields.reason = reason;
 
-    if (!borrow) {
+    const updated = await Borrow.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      updateFields,
+      { returnDocument: 'after', runValidators: true }
+    ).lean();
+
+    if (!updated) {
       return res.status(404).json({ message: 'Borrow record not found' });
     }
 
-    if (borrow.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    const { personName, amount, date, reason } = req.body;
-    borrow.personName = personName ?? borrow.personName;
-    borrow.amount = amount ?? borrow.amount;
-    borrow.date = date ?? borrow.date;
-    borrow.reason = reason ?? borrow.reason;
-
-    const updated = await borrow.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Borrow');
   }
 };
 
@@ -87,20 +88,18 @@ const updateBorrow = async (req, res) => {
  */
 const deleteBorrow = async (req, res) => {
   try {
-    const borrow = await Borrow.findById(req.params.id);
+    const deleted = await Borrow.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
 
-    if (!borrow) {
+    if (!deleted) {
       return res.status(404).json({ message: 'Borrow record not found' });
     }
 
-    if (borrow.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    await borrow.deleteOne();
     res.json({ message: 'Borrow record deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Borrow');
   }
 };
 

@@ -1,4 +1,5 @@
 const Lend = require('../models/Lend');
+const { handleError } = require('../utils/errorHandler');
 
 /**
  * @desc    Get all lend records for user (optionally filter by month/year)
@@ -16,10 +17,10 @@ const getLends = async (req, res) => {
       query.date = { $gte: startDate, $lte: endDate };
     }
 
-    const lends = await Lend.find(query).sort({ date: -1 });
+    const lends = await Lend.find(query).sort({ date: -1 }).lean();
     res.json(lends);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Lend');
   }
 };
 
@@ -46,7 +47,7 @@ const createLend = async (req, res) => {
 
     res.status(201).json(lend);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Lend');
   }
 };
 
@@ -57,26 +58,26 @@ const createLend = async (req, res) => {
  */
 const updateLend = async (req, res) => {
   try {
-    const lend = await Lend.findById(req.params.id);
+    const { personName, amount, date, reason } = req.body;
+    const updateFields = {};
+    if (personName !== undefined) updateFields.personName = personName;
+    if (amount !== undefined) updateFields.amount = amount;
+    if (date !== undefined) updateFields.date = date;
+    if (reason !== undefined) updateFields.reason = reason;
 
-    if (!lend) {
+    const updated = await Lend.findOneAndUpdate(
+      { _id: req.params.id, userId: req.user._id },
+      updateFields,
+      { returnDocument: 'after', runValidators: true }
+    ).lean();
+
+    if (!updated) {
       return res.status(404).json({ message: 'Lend record not found' });
     }
 
-    if (lend.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    const { personName, amount, date, reason } = req.body;
-    lend.personName = personName ?? lend.personName;
-    lend.amount = amount ?? lend.amount;
-    lend.date = date ?? lend.date;
-    lend.reason = reason ?? lend.reason;
-
-    const updated = await lend.save();
     res.json(updated);
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Lend');
   }
 };
 
@@ -87,20 +88,18 @@ const updateLend = async (req, res) => {
  */
 const deleteLend = async (req, res) => {
   try {
-    const lend = await Lend.findById(req.params.id);
+    const deleted = await Lend.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user._id,
+    });
 
-    if (!lend) {
+    if (!deleted) {
       return res.status(404).json({ message: 'Lend record not found' });
     }
 
-    if (lend.userId.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized' });
-    }
-
-    await lend.deleteOne();
     res.json({ message: 'Lend record deleted successfully' });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Lend');
   }
 };
 

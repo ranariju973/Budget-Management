@@ -1,13 +1,28 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { handleError } = require('../utils/errorHandler');
 
-// Helper: Generate JWT token
+// Generate JWT — short-lived token (1 day)
 const generateToken = (id) => {
-  return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign({ id }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRE || '1d',
+    algorithm: 'HS256',
+  });
 };
 
-// Helper: Simple email regex validation
-const isValidEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+// Strict email validation
+const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+
+// Password strength check
+const isStrongPassword = (password) => {
+  // Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number
+  return (
+    password.length >= 8 &&
+    /[A-Z]/.test(password) &&
+    /[a-z]/.test(password) &&
+    /[0-9]/.test(password)
+  );
+};
 
 /**
  * @desc    Register a new user
@@ -19,14 +34,19 @@ const signup = async (req, res) => {
     const { name, email, password } = req.body;
 
     // Validation
-    if (!name || !name.trim()) {
-      return res.status(400).json({ message: 'Name is required' });
+    if (!name || !name.trim() || name.trim().length > 50) {
+      return res.status(400).json({ message: 'Name is required (max 50 characters)' });
     }
     if (!email || !isValidEmail(email)) {
       return res.status(400).json({ message: 'Valid email is required' });
     }
-    if (!password || password.length < 6) {
-      return res.status(400).json({ message: 'Password must be at least 6 characters' });
+    if (!password || !isStrongPassword(password)) {
+      return res.status(400).json({
+        message: 'Password must be at least 8 characters with uppercase, lowercase, and a number',
+      });
+    }
+    if (password.length > 72) {
+      return res.status(400).json({ message: 'Password must be under 72 characters' });
     }
 
     // Check if user already exists
@@ -35,8 +55,8 @@ const signup = async (req, res) => {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create user
-    const user = await User.create({ name, email, password });
+    // Create user (trim name to prevent whitespace abuse)
+    const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password });
 
     res.status(201).json({
       _id: user._id,
@@ -45,7 +65,9 @@ const signup = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    // Never expose internal error details to client
+    console.error('Signup error:', error.message);
+    res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
 };
 
@@ -66,13 +88,12 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Password is required' });
     }
 
-    // Find user by email
-    const user = await User.findOne({ email });
+    // Find user — explicitly select password (hidden by default in schema)
+    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
     if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    // Check password
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
@@ -85,7 +106,8 @@ const login = async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Login error:', error.message);
+    res.status(500).json({ message: 'Login failed. Please try again.' });
   }
 };
 
@@ -102,7 +124,7 @@ const getMe = async (req, res) => {
       email: req.user.email,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error', error: error.message });
+    handleError(res, error, 'Auth');
   }
 };
 

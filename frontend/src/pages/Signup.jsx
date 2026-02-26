@@ -19,8 +19,8 @@ const Signup = () => {
       toast.error('Please fill in all fields');
       return;
     }
-    if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters with uppercase, lowercase, and a number');
       return;
     }
     setSubmitting(true);
@@ -48,7 +48,7 @@ const Signup = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>Name</label>
-            <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-colors" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-strong)'; }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; }} />
+            <input type="text" name="name" value={formData.name} onChange={handleChange} placeholder="Your name" maxLength={50} className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-colors" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-strong)'; }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; }} />
           </div>
           <div>
             <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>Email</label>
@@ -56,7 +56,7 @@ const Signup = () => {
           </div>
           <div>
             <label className="block text-xs font-medium uppercase tracking-wide mb-1.5" style={{ color: 'var(--color-text-secondary)' }}>Password</label>
-            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Min 6 characters" className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-colors" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-strong)'; }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; }} />
+            <input type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Min 8 chars, Aa + 1" maxLength={72} className="w-full px-3 py-2.5 text-sm rounded-lg outline-none transition-colors" style={inputStyle} onFocus={(e) => { e.target.style.borderColor = 'var(--color-border-strong)'; }} onBlur={(e) => { e.target.style.borderColor = 'var(--color-border)'; }} />
           </div>
           <button type="submit" disabled={submitting} className="w-full py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center" style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}>
             {submitting ? <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-surface)', borderTopColor: 'transparent' }} /> : 'Create Account'}

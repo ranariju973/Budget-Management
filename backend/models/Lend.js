@@ -30,4 +30,7 @@ const lendSchema = new mongoose.Schema({
 // Index for fast user+date filtered queries
 lendSchema.index({ userId: 1, date: -1 });
 
+// Text index for full-text search on personName and reason
+lendSchema.index({ personName: 'text', reason: 'text' });
+
 module.exports = mongoose.model('Lend', lendSchema);

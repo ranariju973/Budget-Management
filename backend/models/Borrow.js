@@ -30,4 +30,7 @@ const borrowSchema = new mongoose.Schema({
 // Index for fast user+date filtered queries
 borrowSchema.index({ userId: 1, date: -1 });
 
+// Text index for full-text search on personName and reason
+borrowSchema.index({ personName: 'text', reason: 'text' });
+
 module.exports = mongoose.model('Borrow', borrowSchema);

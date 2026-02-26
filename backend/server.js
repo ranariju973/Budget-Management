@@ -70,6 +70,7 @@ app.use('/api/borrows', require('./routes/borrowRoutes'));
 app.use('/api/lends', require('./routes/lendRoutes'));
 app.use('/api/summary', require('./routes/summaryRoutes'));
 app.use('/api/budget-goals', require('./routes/budgetGoalRoutes'));
+app.use('/api/search', require('./routes/searchRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

@@ -25,4 +25,7 @@ const expenseSchema = new mongoose.Schema({
 // Index for fast user+date filtered queries
 expenseSchema.index({ userId: 1, date: -1 });
 
+// Text index for full-text search on title
+expenseSchema.index({ title: 'text' });
+
 module.exports = mongoose.model('Expense', expenseSchema);

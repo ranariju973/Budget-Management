@@ -7,6 +7,7 @@ import ExpenseSection from '../components/dashboard/ExpenseSection';
 import BorrowSection from '../components/dashboard/BorrowSection';
 import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
+import SearchResults from '../components/search/SearchResults';
 import { getCurrentMonthYear, monthNames } from '../utils/helpers';
 
 const Dashboard = () => {
@@ -21,6 +22,8 @@ const Dashboard = () => {
 
   const renderContent = () => {
     switch (activeSection) {
+      case 'search':
+        return <SearchResults onClose={() => setActiveSection('dashboard')} />;
       case 'expenses':
         return <ExpenseSection {...sectionProps} />;
       case 'borrowing':

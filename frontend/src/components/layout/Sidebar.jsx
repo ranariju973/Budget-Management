@@ -10,10 +10,12 @@ import {
   FiMoon,
   FiX,
   FiPieChart,
+  FiSearch,
 } from 'react-icons/fi';
 
 const navItems = [
   { label: 'Dashboard', icon: FiGrid, section: 'dashboard' },
+  { label: 'Search', icon: FiSearch, section: 'search' },
   { label: 'Expenses', icon: FiCreditCard, section: 'expenses' },
   { label: 'Borrowing', icon: FiArrowDownLeft, section: 'borrowing' },
   { label: 'Lending', icon: FiArrowUpRight, section: 'lending' },

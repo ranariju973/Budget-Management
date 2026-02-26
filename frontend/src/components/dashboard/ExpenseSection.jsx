@@ -176,8 +176,8 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
         </form>
       )}
 
-      {/* List */}
-      <div className="px-4 py-2">
+      {/* List — scrollable when more than 7 items */}
+      <div className="px-4 py-2 overflow-y-auto" style={{ maxHeight: !preview && expenses.length > 7 ? '308px' : 'none' }}>
         {loading ? (
           <div className="py-6 flex justify-center">
             <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-border-strong)', borderTopColor: 'transparent' }} />

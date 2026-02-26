@@ -19,20 +19,28 @@ const SpendingCharts = ({ month, year }) => {
   const [activeTab, setActiveTab] = useState('doughnut');
 
   useEffect(() => {
+    const fetchChartData = async () => {
+      setLoading(true);
+      try {
+        const res = await getChartData(month, year);
+        setChartData(res.data);
+      } catch {
+        setChartData(null);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchChartData();
   }, [month, year]);
 
-  const fetchChartData = async () => {
-    setLoading(true);
-    try {
-      const res = await getChartData(month, year);
-      setChartData(res.data);
-    } catch {
-      setChartData(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Hooks must be called before any early return (Rules of Hooks)
+  const { textColor, borderColor: themeBorderColor } = useMemo(() => {
+    const styles = getComputedStyle(document.documentElement);
+    return {
+      textColor: styles.getPropertyValue('--color-text-muted').trim() || '#94a3b8',
+      borderColor: styles.getPropertyValue('--color-border').trim() || '#e2e8f0',
+    };
+  }, [chartData]);
 
   if (loading) {
     return (
@@ -54,15 +62,6 @@ const SpendingCharts = ({ month, year }) => {
       </div>
     );
   }
-
-  // Cache computed styles — only re-read when theme might change
-  const { textColor, borderColor } = useMemo(() => {
-    const styles = getComputedStyle(document.documentElement);
-    return {
-      textColor: styles.getPropertyValue('--color-text-muted').trim() || '#94a3b8',
-      borderColor: styles.getPropertyValue('--color-border').trim() || '#e2e8f0',
-    };
-  }, [chartData]);
 
   const commonOptions = {
     responsive: true,
@@ -135,7 +134,7 @@ const SpendingCharts = ({ month, year }) => {
         border: { display: false },
       },
       y: {
-        grid: { color: borderColor, lineWidth: 0.5 },
+        grid: { color: themeBorderColor, lineWidth: 0.5 },
         ticks: {
           color: textColor,
           font: { size: 10 },
@@ -178,7 +177,7 @@ const SpendingCharts = ({ month, year }) => {
         border: { display: false },
       },
       y: {
-        grid: { color: borderColor, lineWidth: 0.5 },
+        grid: { color: themeBorderColor, lineWidth: 0.5 },
         ticks: {
           color: textColor,
           font: { size: 10 },

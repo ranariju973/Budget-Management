@@ -9,9 +9,12 @@ import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
 import SearchResults from '../components/search/SearchResults';
 import ErrorBoundary from '../components/common/ErrorBoundary';
+import useExpenseReminder from '../hooks/useExpenseReminder';
 import { getCurrentMonthYear, monthNames } from '../utils/helpers';
 
 const Dashboard = () => {
+  // Daily 10 PM browser notification — "Have you added your expenses?"
+  useExpenseReminder();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);

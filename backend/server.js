@@ -15,6 +15,9 @@ connectDB();
 
 const app = express();
 
+// Trust first proxy (Render, Heroku, etc.) so rate-limiter reads real client IP
+app.set('trust proxy', 1);
+
 // ─── Security Middleware ─────────────────────────────────────────────
 
 // Helmet: sets secure HTTP headers (XSS filter, HSTS, no-sniff, etc.)

@@ -14,6 +14,7 @@
   --color-accent: #0a0a0a;
   --color-accent-hover: #262626;
   --color-danger: #dc2626;
+  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dark {
@@ -30,6 +31,8 @@
   --color-danger: #ef4444;
 }
 
+/* ── Base ── */
+
 html {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -41,43 +44,69 @@ body {
   color: var(--color-text);
 }
 
+/* ── Scrollbar ── */
+
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 2px; }
 
-/* Transitions scoped to theme toggle — avoids chart.js canvas flicker */
+/* ── Theme toggle transition (scoped to avoid chart.js canvas flicker) ── */
+
 html.theme-transitioning,
 html.theme-transitioning * {
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
 }
 
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none; margin: 0;
-}
-input[type="number"] { -moz-appearance: textfield; }
-input:focus, button:focus-visible { outline: none; }
+/* ── Form resets ── */
 
-/* ── Auth page vanish/reveal text animation ── */
+input[type="number"] {
+  -moz-appearance: textfield;
+  &::-webkit-inner-spin-button,
+  &::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+input:focus,
+button:focus-visible {
+  outline: none;
+}
+
+/* ── Auth page animations ── */
+
 @keyframes vanishIn {
-  0% { opacity: 0; filter: blur(12px); transform: translateY(16px) scale(0.96); }
-  60% { opacity: 0.7; filter: blur(3px); transform: translateY(-2px) scale(1.01); }
-  100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+  0%   { opacity: 0;   filter: blur(12px); transform: translateY(16px) scale(0.96); }
+  60%  { opacity: 0.7; filter: blur(3px);  transform: translateY(-2px) scale(1.01); }
+  100% { opacity: 1;   filter: blur(0);    transform: translateY(0) scale(1); }
 }
+
 @keyframes fadeSlideUp {
-  0% { opacity: 0; transform: translateY(20px); }
-  100% { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
+
 @keyframes floatCard {
   0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+  50%      { transform: translateY(-8px); }
 }
+
 @keyframes pulseRing {
-  0% { opacity: 0.04; transform: scale(1); }
-  50% { opacity: 0.08; transform: scale(1.03); }
-  100% { opacity: 0.04; transform: scale(1); }
+  0%, 100% { opacity: 0.04; transform: scale(1); }
+  50%      { opacity: 0.08; transform: scale(1.03); }
 }
-.anim-vanish-in { animation: vanishIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.anim-fade-up { animation: fadeSlideUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
-.anim-float { animation: floatCard 4s ease-in-out infinite; }
+
+/* Respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .anim-vanish-in,
+  .anim-fade-up,
+  .anim-float,
+  .anim-pulse-ring {
+    animation: none !important;
+  }
+}
+
+.anim-vanish-in  { animation: vanishIn 0.8s var(--ease-smooth) both; }
+.anim-fade-up    { animation: fadeSlideUp 0.7s var(--ease-smooth) both; }
+.anim-float      { animation: floatCard 4s ease-in-out infinite; }
 .anim-pulse-ring { animation: pulseRing 5s ease-in-out infinite; }

@@ -35,60 +35,87 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col lg:flex-row" style={{ backgroundColor: 'var(--color-surface)' }}>
 
-      {/* ───── Left · Dark showcase panel ───── */}
-      <div className="hidden lg:flex lg:w-[46%] relative overflow-hidden" style={{ backgroundColor: 'var(--color-accent)' }}>
-        {/* Decorative concentric circles */}
-        <div className="absolute" style={{ top: '18%', left: '20%', width: '420px', height: '420px' }}>
-          {[420, 320, 220].map((size, i) => (
-            <div key={i} className="absolute rounded-full" style={{
-              width: `${size}px`, height: `${size}px`,
-              top: `${(420 - size) / 2}px`, left: `${(420 - size) / 2}px`,
-              border: `1px solid var(--color-surface)`,
-              opacity: 0.06 + i * 0.03,
-            }} />
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="relative z-10 flex flex-col justify-between h-full w-full px-10 py-10">
-          {/* Top tagline */}
-          <p className="text-xs tracking-wide" style={{ color: 'var(--color-surface)', opacity: 0.5 }}>
-            Smart budgeting made simple — track, save, and grow with FinKart.
-          </p>
-
-          {/* Hero heading */}
-          <div className="mt-auto mb-auto">
-            <h1 className="text-5xl font-bold leading-[1.1] tracking-tight" style={{ color: 'var(--color-surface)' }}>
-              Manage<br />your budget
-            </h1>
+      {/* ───── Left · Dark panel with rounded TR & BR corners ───── */}
+      <div className="hidden lg:flex lg:w-[46%] p-4 pr-0">
+        <div
+          className="w-full relative overflow-hidden flex flex-col"
+          style={{
+            backgroundColor: 'var(--color-accent)',
+            borderRadius: '0 2rem 2rem 0',
+          }}
+        >
+          {/* Animated decorative concentric circles */}
+          <div className="absolute anim-pulse-ring" style={{ top: '14%', left: '16%', width: '440px', height: '440px' }}>
+            {[440, 330, 220].map((size, i) => (
+              <div key={i} className="absolute rounded-full" style={{
+                width: `${size}px`, height: `${size}px`,
+                top: `${(440 - size) / 2}px`, left: `${(440 - size) / 2}px`,
+                border: `1px solid var(--color-surface)`,
+                opacity: 0.05 + i * 0.03,
+              }} />
+            ))}
           </div>
 
-          {/* Floating mock card */}
-          <div className="absolute right-6 bottom-[22%] w-52 rounded-2xl p-4 shadow-2xl" style={{
-            backgroundColor: 'var(--color-surface)', opacity: 0.95
-          }}>
-            <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--color-text-muted)' }}>Weekly Overview</p>
-            <p className="text-2xl font-bold tracking-tight mb-3" style={{ color: 'var(--color-text)' }}>₹12,450</p>
-            {/* Mini bar chart */}
-            <div className="flex items-end gap-1.5 h-10">
-              {[55, 70, 40, 85, 60, 45, 75].map((h, i) => (
-                <div key={i} className="flex-1 rounded-sm" style={{
-                  height: `${h}%`,
-                  backgroundColor: i === 3 ? 'var(--color-accent)' : 'var(--color-border)',
-                }} />
-              ))}
+          {/* Content */}
+          <div className="relative z-10 flex flex-col justify-between h-full w-full px-10 py-10">
+            {/* Top tagline */}
+            <p className="text-xs tracking-wide anim-fade-up" style={{ color: 'var(--color-surface)', opacity: 0.5, animationDelay: '0.1s' }}>
+              Smart budgeting made simple — track, save, and grow.
+            </p>
+
+            {/* Hero heading with vanish animation */}
+            <div className="mt-auto mb-auto">
+              <h1 className="text-5xl font-bold leading-[1.1] tracking-tight anim-vanish-in" style={{ color: 'var(--color-surface)', animationDelay: '0.2s' }}>
+                Manage<br />your budget
+              </h1>
+              <p className="text-sm mt-4 leading-relaxed anim-fade-up" style={{ color: 'var(--color-surface)', opacity: 0.45, animationDelay: '0.5s' }}>
+                Join thousands who trust <span className="font-semibold" style={{ opacity: 1 }}>FinKart</span> to track expenses, set goals, and build better saving habits.
+              </p>
+
+              {/* Stats row */}
+              <div className="flex gap-8 mt-8">
+                {[{ val: '10K+', label: 'Users' }, { val: '₹2Cr+', label: 'Tracked' }, { val: '4.8', label: 'Rating' }].map((s, i) => (
+                  <div key={i} className="anim-fade-up" style={{ animationDelay: `${0.6 + i * 0.1}s` }}>
+                    <p className="text-xl font-bold" style={{ color: 'var(--color-surface)' }}>{s.val}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'var(--color-surface)', opacity: 0.4 }}>{s.label}</p>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="flex justify-between mt-1.5">
-              {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
-                <span key={i} className="text-[8px] flex-1 text-center" style={{ color: 'var(--color-text-muted)' }}>{d}</span>
-              ))}
+
+            {/* Floating mock card */}
+            <div className="absolute right-6 bottom-[18%] w-52 rounded-2xl p-4 shadow-2xl anim-float" style={{
+              backgroundColor: 'var(--color-surface)', opacity: 0.95
+            }}>
+              <p className="text-[10px] font-medium mb-1" style={{ color: 'var(--color-text-muted)' }}>Weekly Overview</p>
+              <p className="text-2xl font-bold tracking-tight mb-3" style={{ color: 'var(--color-text)' }}>₹12,450</p>
+              <div className="flex items-end gap-1.5 h-10">
+                {[55, 70, 40, 85, 60, 45, 75].map((h, i) => (
+                  <div key={i} className="flex-1 rounded-sm" style={{
+                    height: `${h}%`,
+                    backgroundColor: i === 3 ? 'var(--color-accent)' : 'var(--color-border)',
+                  }} />
+                ))}
+              </div>
+              <div className="flex justify-between mt-1.5">
+                {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+                  <span key={i} className="text-[8px] flex-1 text-center" style={{ color: 'var(--color-text-muted)' }}>{d}</span>
+                ))}
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ───── Right · Form panel ───── */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      {/* ───── Right · Form panel with depth ───── */}
+      <div
+        className="flex-1 flex flex-col min-h-screen"
+        style={{
+          boxShadow: '-8px 0 40px rgba(0,0,0,0.06)',
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         {/* Top nav */}
         <div className="flex items-center justify-between px-8 py-5">
           <div className="flex items-center gap-2">
@@ -105,7 +132,7 @@ const Login = () => {
         {/* Form centered */}
         <div className="flex-1 flex items-center justify-center px-8">
           <div className="w-full max-w-sm">
-            <h2 className="text-3xl font-bold tracking-tight mb-8" style={{ color: 'var(--color-text)' }}>
+            <h2 className="text-3xl font-bold tracking-tight mb-8 anim-fade-up" style={{ color: 'var(--color-text)' }}>
               Sign In
             </h2>
 

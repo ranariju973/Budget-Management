@@ -46,9 +46,10 @@ const Login = () => {
           className="w-full rounded-3xl flex flex-col justify-center px-12 py-14 relative overflow-hidden"
           style={{ backgroundColor: 'var(--color-accent)' }}
         >
-          {/* Subtle gradient overlay */}
-          <div className="absolute inset-0 opacity-10 rounded-3xl"
-               style={{ background: 'linear-gradient(135deg, var(--color-surface) 0%, transparent 50%, var(--color-surface) 100%)' }} />
+          {/* Multi-layer blending gradient (FXNX-style, B&W) */}
+          <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at 80% 15%, var(--color-surface) 0%, transparent 55%)', opacity: 0.18 }} />
+          <div className="absolute inset-0 rounded-3xl" style={{ background: 'radial-gradient(ellipse at 10% 80%, var(--color-surface) 0%, transparent 45%)', opacity: 0.08 }} />
+          <div className="absolute inset-0 rounded-3xl" style={{ background: 'linear-gradient(160deg, transparent 30%, var(--color-surface) 100%)', opacity: 0.06 }} />
 
           {/* Brand */}
           <div className="relative z-10">

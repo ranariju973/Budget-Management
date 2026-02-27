@@ -3,7 +3,7 @@ import axios from 'axios';
 // Create axios instance with base URL
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 15000,
+  timeout: 60000, // 60s — handles Render free-tier cold starts (~30-50s)
   headers: {
     'Content-Type': 'application/json',
   },
@@ -22,12 +22,14 @@ api.interceptors.request.use(
 );
 
 // Response interceptor: Handle 401 (auto-logout)
+// Only logout on real 401 from server, NOT on network errors (Render cold start)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // error.response exists = server replied with 401 (token truly invalid/expired)
+    // error.response missing = network error / timeout (server sleeping, don't logout)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      // Redirect to login if not already there
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }

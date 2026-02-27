@@ -2,10 +2,10 @@ const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const { handleError } = require('../utils/errorHandler');
 
-// Generate JWT — short-lived token (1 day)
+// Generate JWT — long-lived token (15 days)
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRE || '1d',
+    expiresIn: process.env.JWT_EXPIRE || '15d',
     algorithm: 'HS256',
   });
 };

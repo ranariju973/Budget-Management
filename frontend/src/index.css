@@ -100,76 +100,147 @@ button:focus-visible {
 
 /* ── Month Navigator ── */
 
-.month-nav {
-  display: flex;
+.mn {
+  display: inline-flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 10px;
+  margin-top: 6px;
 }
 
-.month-nav-btn {
+.mn-controls {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  background: var(--color-surface-alt);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 4px;
+}
+
+.mn-arrow {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  color: var(--color-text);
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: background-color 0.15s, color 0.15s;
+  font-size: 18px;
+  flex-shrink: 0;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.month-nav-btn:hover:not(:disabled) {
+.mn-arrow:hover:not(:disabled) {
   background-color: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 
-.month-nav-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
+.mn-arrow:active:not(:disabled) {
+  transform: scale(0.92);
 }
 
-.month-nav-label {
+.mn-arrow:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
+.mn-display {
   display: flex;
   align-items: baseline;
   gap: 6px;
-  padding: 0 8px;
-  min-width: 160px;
+  padding: 0 12px;
+  min-width: 140px;
   justify-content: center;
   user-select: none;
 }
 
-.month-nav-month {
-  font-size: 20px;
-  font-weight: 600;
+.mn-month {
+  font-size: 18px;
+  font-weight: 650;
   color: var(--color-text);
-  letter-spacing: -0.5px;
+  letter-spacing: -0.4px;
+  line-height: 1;
 }
 
-.month-nav-year {
-  font-size: 14px;
+.mn-year {
+  font-size: 13px;
   font-weight: 500;
   color: var(--color-text-muted);
+  line-height: 1;
 }
 
-.month-nav-today {
-  margin-left: 8px;
-  padding: 4px 12px;
+.mn-today {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
   font-size: 12px;
   font-weight: 600;
-  border-radius: 6px;
+  letter-spacing: 0.01em;
+  border-radius: 10px;
   border: 1px solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-text-secondary);
   cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
 }
 
-.month-nav-today:hover {
-  background-color: var(--color-surface-hover);
-  border-color: var(--color-border-strong);
+.mn-today:hover {
+  background-color: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-surface);
+}
+
+.mn-today:active {
+  transform: scale(0.95);
+}
+
+/* Mobile: full-width, larger touch targets */
+@media (max-width: 639px) {
+  .mn {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .mn-controls {
+    flex: 1;
+    justify-content: space-between;
+  }
+
+  .mn-arrow {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-size: 20px;
+  }
+
+  .mn-display {
+    min-width: 0;
+    flex: 1;
+    padding: 0 4px;
+  }
+
+  .mn-month {
+    font-size: 17px;
+  }
+
+  .mn-year {
+    font-size: 12px;
+  }
+
+  .mn-today {
+    padding: 9px 14px;
+    border-radius: 10px;
+    font-size: 12px;
+    flex-shrink: 0;
+  }
 }
 
 /* ── Auth Pages (Landing-inspired layout) ── */

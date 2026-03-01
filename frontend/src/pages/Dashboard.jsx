@@ -80,7 +80,7 @@ const Dashboard = () => {
 
         <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
           {/* Header with Month Navigator */}
-          <div className="flex items-end justify-between mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                 Overview
@@ -88,7 +88,7 @@ const Dashboard = () => {
               <MonthNavigator month={month} year={year} onChange={handleMonthChange} />
             </div>
             {!isCurrentMonth && (
-              <span className="text-xs font-medium px-3 py-1 rounded-full"
+              <span className="hidden sm:inline text-xs font-medium px-3 py-1 rounded-full"
                 style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>
                 Viewing past data
               </span>

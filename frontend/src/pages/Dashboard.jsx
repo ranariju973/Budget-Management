@@ -7,10 +7,11 @@ import ExpenseSection from '../components/dashboard/ExpenseSection';
 import BorrowSection from '../components/dashboard/BorrowSection';
 import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
+import MonthNavigator from '../components/dashboard/MonthNavigator';
 import SearchResults from '../components/search/SearchResults';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import useExpenseReminder from '../hooks/useExpenseReminder';
-import { getCurrentMonthYear, monthNames } from '../utils/helpers';
+import { getCurrentMonthYear } from '../utils/helpers';
 
 const Dashboard = () => {
   // Daily 10 PM browser notification — "Have you added your expenses?"
@@ -19,7 +20,17 @@ const Dashboard = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { month, year } = getCurrentMonthYear();
+  const current = getCurrentMonthYear();
+  const [month, setMonth] = useState(current.month);
+  const [year, setYear] = useState(current.year);
+
+  const isCurrentMonth = month === current.month && year === current.year;
+
+  const handleMonthChange = useCallback((m, y) => {
+    setMonth(m);
+    setYear(y);
+  }, []);
+
   const triggerRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
   const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const goToExpenses = useCallback(() => setActiveSection('expenses'), []);
@@ -68,16 +79,20 @@ const Dashboard = () => {
         <Navbar onMenuClick={openSidebar} />
 
         <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
-          {/* Header */}
+          {/* Header with Month Navigator */}
           <div className="flex items-end justify-between mb-8">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest" style={{ color: 'var(--color-text-muted)' }}>
                 Overview
               </p>
-              <h2 className="text-2xl font-semibold mt-1" style={{ color: 'var(--color-text)' }}>
-                {monthNames[month - 1]} {year}
-              </h2>
+              <MonthNavigator month={month} year={year} onChange={handleMonthChange} />
             </div>
+            {!isCurrentMonth && (
+              <span className="text-xs font-medium px-3 py-1 rounded-full"
+                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>
+                Viewing past data
+              </span>
+            )}
           </div>
 
           {/* Summary */}

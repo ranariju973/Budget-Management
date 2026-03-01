@@ -38,7 +38,7 @@ const Login = () => {
       <div className="auth-left">
         <div className="auth-left-content">
           <h1 className="auth-hero-title anim-vanish-in">
-            Welcome<br />Back.
+            Welcome<br />Back 🥳
           </h1>
 
           <div className="auth-features">

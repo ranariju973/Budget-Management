@@ -57,7 +57,7 @@ const Signup = () => {
               <div>
                 <h3 className="auth-feature-title">Remove Bottlenecks</h3>
                 <p className="auth-feature-desc">
-                  Stop worrying about budgets and receipts. FinKart automates your expense tracking so you can focus on what matters.
+                  Stop worrying about budgets and receipts. FinKart your expense tracking so you can focus on what matters.
                 </p>
               </div>
             </div>
@@ -72,7 +72,7 @@ const Signup = () => {
               <div>
                 <h3 className="auth-feature-title">Access Risk Analysis</h3>
                 <p className="auth-feature-desc">
-                  Visualize your financial health with smart charts, budget goals, and lending & borrowing summaries all in one place.
+                  Visualize your financial health with smart charts, and lending & borrowing summaries all in one place.
                 </p>
               </div>
             </div>

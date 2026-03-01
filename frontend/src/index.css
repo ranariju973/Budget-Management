@@ -167,8 +167,8 @@ button:focus-visible {
 }
 
 .mn-year {
-  font-size: 18px;
-  font-weight: 650;
+  font-size: 17px;
+  font-weight: 500;
   color: var(--color-text-muted);
   line-height: 1;
 }
@@ -232,7 +232,7 @@ button:focus-visible {
   }
 
   .mn-year {
-    font-size: 17px;
+    font-size: 16px;
   }
 
   .mn-today {

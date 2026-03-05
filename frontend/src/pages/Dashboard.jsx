@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
-import MobileTabBar from '../components/layout/MobileTabBar';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import IncomeSection from '../components/dashboard/IncomeSection';
 import ExpenseSection from '../components/dashboard/ExpenseSection';
@@ -38,7 +37,6 @@ const Dashboard = () => {
   const goToBorrowing = useCallback(() => setActiveSection('borrowing'), []);
   const goToLending = useCallback(() => setActiveSection('lending'), []);
   const goToDashboard = useCallback(() => setActiveSection('dashboard'), []);
-  const handleMobileTab = useCallback((section) => setActiveSection(section), []);
 
   const sectionProps = useMemo(() => ({ month, year, onDataChange: triggerRefresh }), [month, year, triggerRefresh]);
 
@@ -80,7 +78,7 @@ const Dashboard = () => {
       <div className="lg:ml-60">
         <Navbar onMenuClick={openSidebar} />
 
-        <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto mobile-main-content">
+        <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
           {/* Header with Month Navigator */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
@@ -106,9 +104,6 @@ const Dashboard = () => {
           </ErrorBoundary>
         </main>
       </div>
-
-      {/* Mobile bottom tab bar — liquid glass */}
-      <MobileTabBar activeSection={activeSection} onTabChange={handleMobileTab} />
     </div>
   );
 };

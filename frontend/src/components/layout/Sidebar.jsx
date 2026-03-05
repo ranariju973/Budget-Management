@@ -41,7 +41,7 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
       )}
 
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-60 flex flex-col transform transition-transform duration-200 ease-out lg:translate-x-0 ${
+        className={`desktop-sidebar fixed top-0 left-0 z-50 h-full w-60 flex flex-col transform transition-transform duration-200 ease-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
         style={{

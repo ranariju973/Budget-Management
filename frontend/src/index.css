@@ -556,3 +556,255 @@ button:focus-visible {
     max-width: 420px;
   }
 }
+
+
+/* ══════════════════════════════════════════════════
+   Apple Liquid Glass UI — Mobile Only (< 1024px)
+   ══════════════════════════════════════════════════ */
+
+/* ── Glass effect base ── */
+.glass-surface {
+  position: relative;
+  border-radius: 296px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.glass-surface::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.65);
+  pointer-events: none;
+}
+
+.glass-surface::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #f7f7f7;
+  mix-blend-mode: darken;
+  pointer-events: none;
+}
+
+.dark .glass-surface::before {
+  background: rgba(60, 60, 60, 0.45);
+}
+
+.dark .glass-surface::after {
+  background: #1a1a1a;
+  mix-blend-mode: lighten;
+}
+
+.dark .glass-surface {
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.35);
+}
+
+/* ── Mobile Bottom Tab Bar ── */
+@media (max-width: 1023px) {
+  .mobile-tab-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 25px 25px;
+    pointer-events: none;
+  }
+
+  .mobile-tab-bar > * {
+    pointer-events: auto;
+  }
+
+  .mobile-tab-pills {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    padding: 4px 2px 4px 10px;
+    position: relative;
+  }
+
+  .mobile-tab-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+    padding: 6px 8px 7px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
+    font-family: -apple-system, 'SF Pro', 'SF Pro Display', system-ui, sans-serif;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-tab-item:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-tab-icon {
+    font-size: 18px;
+    font-weight: 590;
+    line-height: 28px;
+    color: var(--color-text);
+  }
+
+  .mobile-tab-label {
+    font-size: 10px;
+    font-weight: 590;
+    line-height: 12px;
+    letter-spacing: -0.1px;
+    text-align: center;
+    color: var(--color-text);
+    font-family: -apple-system, 'SF Pro', 'SF Pro Display', system-ui, sans-serif;
+  }
+
+  .mobile-tab-item.active .mobile-tab-icon,
+  .mobile-tab-item.active .mobile-tab-label {
+    color: #0088ff;
+  }
+
+  .mobile-tab-item.active::before {
+    content: '';
+    position: absolute;
+    inset: 0 -2px;
+    border-radius: 100px;
+    background: var(--color-surface-hover);
+    z-index: -1;
+  }
+
+  .dark .mobile-tab-item.active::before {
+    background: rgba(255, 255, 255, 0.08);
+  }
+
+  .mobile-tab-search {
+    display: flex;
+    align-items: center;
+    padding-right: 10px;
+    flex-shrink: 0;
+  }
+
+  .mobile-tab-search-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 54px;
+    padding: 6px 8px 7px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-tab-search-btn:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-tab-search-btn .mobile-tab-icon {
+    font-size: 17px;
+  }
+
+  /* ── Mobile Glass Navbar ── */
+  .mobile-glass-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 35px 8px 0;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background-color: var(--color-surface);
+  }
+
+  .mobile-glass-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 0.15s ease;
+  }
+
+  .mobile-glass-btn:active {
+    transform: scale(0.92);
+  }
+
+  .mobile-hamburger-btn {
+    width: 65px;
+    height: 44px;
+    padding: 0 2px;
+    border-radius: 296px;
+  }
+
+  .mobile-hamburger-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 22px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .mobile-hamburger-lines span {
+    display: block;
+    width: 100%;
+    height: 2.5px;
+    background-color: var(--color-text);
+    border-radius: 2px;
+  }
+
+  .mobile-avatar-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 1000px;
+  }
+
+  .mobile-avatar-letter {
+    position: relative;
+    z-index: 1;
+    font-size: 19px;
+    font-weight: 590;
+    color: var(--color-text);
+    font-family: -apple-system, 'SF Pro', 'SF Pro Display', system-ui, sans-serif;
+    line-height: 1;
+  }
+
+  /* Hide desktop sidebar on mobile */
+  .desktop-sidebar {
+    display: none !important;
+  }
+
+  /* Hide desktop navbar on mobile */
+  .desktop-navbar {
+    display: none !important;
+  }
+
+  /* Add bottom padding for tab bar on mobile */
+  .mobile-main-content {
+    padding-bottom: 100px !important;
+  }
+}
+
+/* Desktop: hide mobile components */
+@media (min-width: 1024px) {
+  .mobile-tab-bar,
+  .mobile-glass-navbar {
+    display: none !important;
+  }
+}

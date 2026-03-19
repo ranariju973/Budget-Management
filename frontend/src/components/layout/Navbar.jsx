@@ -47,39 +47,39 @@ const Navbar = ({ setActiveSection }) => {
           <>
             <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMenuOpen(false)} />
             <div 
-              className="absolute top-12 right-0 w-[220px] rounded-[20px] shadow-xl z-50 overflow-hidden lg:hidden"
+              className="absolute top-12 right-0 w-[240px] rounded-[16px] shadow-2xl z-50 overflow-hidden lg:hidden fade-in duration-200"
               style={{
-                backgroundColor: darkMode ? 'rgba(28,28,30,0.85)' : 'rgba(242,242,247,0.85)',
-                border: '1px solid var(--color-border-subtle)',
-                backdropFilter: 'blur(30px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+                backgroundColor: darkMode ? 'rgba(30, 30, 30, 0.65)' : 'rgba(250, 250, 250, 0.65)',
+                border: darkMode ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)',
+                backdropFilter: 'blur(40px) saturate(200%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(200%)',
               }}
             >
-              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
-                <p className="font-semibold text-[14px] truncate" style={{ color: 'var(--color-text)' }}>{user?.name}</p>
+              <div className="px-4 py-3" style={{ borderBottom: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)' }}>
+                <p className="font-semibold text-[13px] truncate" style={{ color: 'var(--color-text)' }}>{user?.name}</p>
                 <p className="text-[12px] truncate" style={{ color: 'var(--color-text-muted)' }}>{user?.email}</p>
               </div>
-              <div className="p-1.5 flex flex-col gap-1">
+              <div className="flex flex-col">
                 <button 
                   onClick={() => { if(setActiveSection) setActiveSection('charts'); setMenuOpen(false); }} 
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
-                  style={{ color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:opacity-50 transition-opacity" 
+                  style={{ color: 'var(--color-text)', backgroundColor: 'transparent', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)' }}
                 >
-                  Spend Analysis <FiPieChart size={16} style={{ color: 'var(--color-text-secondary)' }} />
+                  Spend Analysis <FiPieChart size={18} style={{ color: 'var(--color-text-secondary)' }} />
                 </button>
                 <button 
                   onClick={() => { toggleTheme(); setMenuOpen(false); }} 
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
-                  style={{ color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:opacity-50 transition-opacity" 
+                  style={{ color: 'var(--color-text)', backgroundColor: 'transparent', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.1)' : '1px solid rgba(0,0,0,0.05)' }}
                 >
-                  {darkMode ? 'Light Mode' : 'Dark Mode'} {darkMode ? <FiSun size={16} style={{ color: 'var(--color-text-secondary)' }} /> : <FiMoon size={16} style={{ color: 'var(--color-text-secondary)' }} />}
+                  {darkMode ? 'Light Mode' : 'Dark Mode'} {darkMode ? <FiSun size={18} style={{ color: 'var(--color-text-secondary)' }} /> : <FiMoon size={18} style={{ color: 'var(--color-text-secondary)' }} />}
                 </button>
                 <button 
                   onClick={() => { logout(); setMenuOpen(false); }} 
-                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
-                  style={{ color: 'var(--color-danger)', backgroundColor: 'var(--color-surface)' }}
+                  className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:opacity-50 transition-opacity" 
+                  style={{ color: 'var(--color-danger)', backgroundColor: 'transparent' }}
                 >
-                  Logout <FiLogOut size={16} />
+                  Logout <FiLogOut size={18} />
                 </button>
               </div>
             </div>

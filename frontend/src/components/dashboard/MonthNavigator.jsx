@@ -22,31 +22,53 @@ const MonthNavigator = memo(({ month, year, onChange }) => {
   }, [current.month, current.year, onChange]);
 
   return (
-    <div className="mn">
-      <div className="mn-controls">
-        <button onClick={goPrev} className="mn-arrow" aria-label="Previous month">
-          <FiChevronLeft />
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
+      <div 
+        className="flex items-center p-1 rounded-full card-shadow"
+        style={{ backgroundColor: 'var(--color-surface)', border: '1px solid var(--color-border-subtle)' }}
+      >
+        <button 
+          onClick={goPrev} 
+          className="p-2 rounded-full transition-colors tap-effect" 
+          aria-label="Previous month"
+          style={{ color: 'var(--color-text)' }}
+          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+        >
+          <FiChevronLeft size={20} />
         </button>
 
-        <div className="mn-display">
-          <span className="mn-month">{monthNames[month - 1]}</span>
-          <span className="mn-year">{year}</span>
+        <div className="flex items-center justify-center px-6 min-w-[140px]">
+          <span className="text-[16px] font-semibold tracking-tight" style={{ color: 'var(--color-text)' }}>
+            {monthNames[month - 1]} {year}
+          </span>
         </div>
 
         <button
           onClick={goNext}
-          className="mn-arrow"
+          className="p-2 rounded-full transition-colors tap-effect"
           disabled={isCurrentMonth}
           aria-label="Next month"
+          style={{ 
+            color: isCurrentMonth ? 'var(--color-text-muted)' : 'var(--color-text)',
+            opacity: isCurrentMonth ? 0.5 : 1
+          }}
+          onMouseEnter={(e) => { if(!isCurrentMonth) e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
+          onMouseLeave={(e) => { if(!isCurrentMonth) e.currentTarget.style.backgroundColor = 'transparent'; }}
         >
-          <FiChevronRight />
+          <FiChevronRight size={20} />
         </button>
       </div>
 
       {!isCurrentMonth && (
-        <button onClick={goToday} className="mn-today" aria-label="Go to current month">
-          <FiCalendar size={13} />
-          <span>Today</span>
+        <button 
+          onClick={goToday} 
+          className="flex items-center gap-2 px-4 py-2 text-[14px] font-medium rounded-full transition-colors tap-effect" 
+          aria-label="Go to current month"
+          style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text)' }}
+        >
+          <FiCalendar size={16} />
+          <span>Go to Today</span>
         </button>
       )}
     </div>
@@ -55,3 +77,4 @@ const MonthNavigator = memo(({ month, year, onChange }) => {
 
 MonthNavigator.displayName = 'MonthNavigator';
 export default MonthNavigator;
+

@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
+import BottomNav from '../components/layout/BottomNav';
 import SummaryCards from '../components/dashboard/SummaryCards';
 import IncomeSection from '../components/dashboard/IncomeSection';
 import ExpenseSection from '../components/dashboard/ExpenseSection';
@@ -16,7 +17,6 @@ import { getCurrentMonthYear } from '../utils/helpers';
 const Dashboard = () => {
   // Daily 10 PM browser notification — "Have you added your expenses?"
   useExpenseReminder();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [activeSection, setActiveSection] = useState('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -32,7 +32,6 @@ const Dashboard = () => {
   }, []);
 
   const triggerRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
-  const openSidebar = useCallback(() => setSidebarOpen(true), []);
   const goToExpenses = useCallback(() => setActiveSection('expenses'), []);
   const goToBorrowing = useCallback(() => setActiveSection('borrowing'), []);
   const goToLending = useCallback(() => setActiveSection('lending'), []);
@@ -67,16 +66,14 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface)' }}>
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface-alt)' }}>
       <Sidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
-        isOpen={sidebarOpen}
-        setIsOpen={setSidebarOpen}
       />
 
-      <div className="lg:ml-60">
-        <Navbar onMenuClick={openSidebar} />
+      <div className="lg:ml-60 pb-20 lg:pb-0"> {/* padding bottom for mobile BottomNav */}
+        <Navbar />
 
         <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
           {/* Header with Month Navigator */}
@@ -104,6 +101,8 @@ const Dashboard = () => {
           </ErrorBoundary>
         </main>
       </div>
+
+      <BottomNav activeSection={activeSection} setActiveSection={setActiveSection} />
     </div>
   );
 };

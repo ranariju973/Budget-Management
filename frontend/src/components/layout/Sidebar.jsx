@@ -22,45 +22,27 @@ const navItems = [
   { label: 'Analytics', icon: FiPieChart, section: 'charts' },
 ];
 
-const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
+const Sidebar = ({ activeSection, setActiveSection }) => {
   const { user, logout } = useAuth();
   const { darkMode, toggleTheme } = useTheme();
 
   const handleNavClick = (section) => {
     setActiveSection(section);
-    setIsOpen(false);
   };
 
   return (
     <>
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-
       <aside
-        className={`fixed top-0 left-0 z-50 h-full w-60 flex flex-col transform transition-transform duration-200 ease-out lg:translate-x-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className="fixed top-0 left-0 z-40 h-full w-60 hidden lg:flex flex-col glass"
         style={{
-          backgroundColor: 'var(--color-surface)',
           borderRight: '1px solid var(--color-border)',
         }}
       >
         {/* Brand */}
-        <div className="flex items-center justify-between px-5 h-14" style={{ borderBottom: '1px solid var(--color-border)' }}>
-          <span className="text-sm font-semibold tracking-tight" style={{ color: 'var(--color-text)' }}>
+        <div className="flex items-center justify-between px-6 h-14" style={{ borderBottom: '1px solid var(--color-border)' }}>
+          <span className="text-[15px] font-bold tracking-tight" style={{ color: 'var(--color-text)' }}>
             FinKart
           </span>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="lg:hidden p-1 rounded-md hover:opacity-70"
-            style={{ color: 'var(--color-text-muted)' }}
-          >
-            <FiX size={18} />
-          </button>
         </div>
 
         {/* User */}
@@ -92,7 +74,7 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
               <button
                 key={item.section}
                 onClick={() => handleNavClick(item.section)}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors duration-150"
                 style={{
                   backgroundColor: isActive ? 'var(--color-surface-hover)' : 'transparent',
                   color: isActive ? 'var(--color-text)' : 'var(--color-text-secondary)',
@@ -100,7 +82,7 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
                 onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
-                <Icon size={16} />
+                <Icon size={16} className={isActive ? 'stroke-[2.5px]' : 'stroke-2'} />
                 {item.label}
               </button>
             );
@@ -108,11 +90,11 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
         </nav>
 
         {/* Footer */}
-        <div className="px-3 pb-4 space-y-0.5" style={{ borderTop: '1px solid var(--color-border)' }}>
+        <div className="px-3 pb-6 space-y-0.5" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="pt-3" />
           <button
             onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors duration-150 tap-effect"
             style={{ color: 'var(--color-text-secondary)' }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
@@ -122,7 +104,7 @@ const Sidebar = ({ activeSection, setActiveSection, isOpen, setIsOpen }) => {
           </button>
           <button
             onClick={logout}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-150"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors duration-150 tap-effect"
             style={{ color: 'var(--color-danger)' }}
             onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
             onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}

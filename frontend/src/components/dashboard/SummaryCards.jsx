@@ -38,15 +38,18 @@ const SummaryCards = ({ month, year, refreshKey }) => {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
-            className="rounded-xl p-4 animate-pulse"
-            style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)' }}
+            className="rounded-[24px] p-5 animate-pulse card-shadow"
+            style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}
           >
-            <div className="h-3 rounded w-12 mb-3" style={{ backgroundColor: 'var(--color-border)' }} />
-            <div className="h-6 rounded w-16" style={{ backgroundColor: 'var(--color-border)' }} />
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-5 h-5 rounded-full" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
+              <div className="h-3 rounded w-16" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
+            </div>
+            <div className="h-6 rounded w-20" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
           </div>
         ))}
       </div>
@@ -54,7 +57,7 @@ const SummaryCards = ({ month, year, refreshKey }) => {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
       {cards.map((card, idx) => {
         const Icon = card.icon;
         const isBalance = idx === 4;
@@ -62,30 +65,33 @@ const SummaryCards = ({ month, year, refreshKey }) => {
         return (
           <div
             key={card.label}
-            className="rounded-xl p-4 group transition-all duration-200"
+            className={`rounded-[24px] p-5 transition-all duration-200 ${isBalance ? '' : 'card-shadow tap-effect'}`}
             style={{
-              backgroundColor: isBalance ? 'var(--color-accent)' : 'var(--color-surface-alt)',
-              border: isBalance ? 'none' : '1px solid var(--color-border)',
+              backgroundColor: isBalance ? 'var(--color-accent)' : 'var(--color-surface)',
+              border: 'none',
             }}
           >
-            <div className="flex items-center gap-2 mb-2">
-              <Icon
-                size={14}
-                style={{ color: isBalance ? 'var(--color-surface)' : 'var(--color-text-muted)' }}
-              />
+            <div className="flex items-center gap-2 mb-3">
+              <div 
+                className="w-7 h-7 rounded-full flex items-center justify-center"
+                style={{ backgroundColor: isBalance ? 'rgba(255,255,255,0.15)' : 'var(--color-surface-alt)' }}
+              >
+                <Icon
+                  size={14}
+                  style={{ color: isBalance ? 'var(--color-surface)' : 'var(--color-text-secondary)' }}
+                />
+              </div>
               <span
-                className="text-xs font-medium uppercase tracking-wide"
-                style={{ color: isBalance ? 'var(--color-surface)' : 'var(--color-text-muted)' }}
+                className="text-[13px] font-semibold tracking-tight"
+                style={{ color: isBalance ? 'rgba(255,255,255,0.8)' : 'var(--color-text-secondary)' }}
               >
                 {card.label}
               </span>
             </div>
             <p
-              className="text-lg font-semibold tabular-nums"
+              className="text-2xl font-bold tracking-tight tabular-nums mt-1"
               style={{
-                color: isBalance
-                  ? 'var(--color-surface)'
-                  : 'var(--color-text)',
+                color: isBalance ? 'var(--color-surface)' : 'var(--color-text)',
               }}
             >
               {card.sign}{formatCurrency(Math.abs(card.value))}

@@ -102,41 +102,41 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
   const displayItems = preview ? expenses.slice(0, PREVIEW_LIMIT) : expenses;
 
   return (
-    <div className="rounded-xl overflow-hidden" style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)' }}>
+    <div className="rounded-[24px] overflow-hidden card-shadow flex flex-col" style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--color-border)' }}>
+      <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
         <div className="flex items-center gap-2">
-          <span className="text-sm font-medium" style={{ color: 'var(--color-text)' }}>Expenses</span>
-          <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>
+          <span className="text-[16px] font-semibold tracking-tight" style={{ color: 'var(--color-text)' }}>Expenses</span>
+          <span className="text-[12px] px-2 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'var(--color-surface-alt)', color: 'var(--color-text-secondary)' }}>
             {expenses.length}
           </span>
         </div>
         {!preview && (
           <button
             onClick={handleAdd}
-            className="p-1.5 rounded-md transition-colors"
+            className="p-1.5 rounded-full transition-colors tap-effect"
             style={{ color: 'var(--color-text-secondary)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; e.currentTarget.style.color = 'var(--color-text)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
           >
-            <FiPlus size={16} />
+            <FiPlus size={18} />
           </button>
         )}
       </div>
 
       {/* Form */}
       {!preview && showForm && (
-        <form onSubmit={handleSubmit} className="px-4 py-3 space-y-2" style={{ borderBottom: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-3" style={{ borderBottom: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-surface-alt)' }}>
           <input
             type="text"
             placeholder="Name"
             value={formData.title}
             onChange={(e) => setFormData({ ...formData, title: e.target.value })}
             autoFocus
-            className="w-full px-3 py-2 text-sm rounded-lg"
-            style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+            className="w-full px-4 py-2.5 text-[15px] rounded-xl outline-none"
+            style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
           />
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               type="number"
               placeholder="Amount"
@@ -144,22 +144,22 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
               step="0.01"
               value={formData.amount}
               onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
-              className="flex-1 px-3 py-2 text-sm rounded-lg"
-              style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+              className="flex-1 px-4 py-2.5 text-[15px] rounded-xl outline-none"
+              style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
             />
             <input
               type="date"
               value={formData.date}
               onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-              className="flex-1 px-3 py-2 text-sm rounded-lg"
-              style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)', color: 'var(--color-text)' }}
+              className="flex-1 px-4 py-2.5 text-[15px] rounded-xl outline-none"
+              style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)' }}
             />
           </div>
-          <div className="flex gap-2 pt-1">
+          <div className="flex gap-3 pt-2">
             <button
               type="submit"
               disabled={submitting}
-              className="flex-1 py-2 text-xs font-medium rounded-lg transition-colors disabled:opacity-50"
+              className="flex-1 py-2.5 text-[14px] font-semibold rounded-xl transition-colors disabled:opacity-50 tap-effect"
               style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
             >
               {submitting ? '...' : editingId ? 'Update' : 'Add'}
@@ -167,7 +167,7 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
             <button
               type="button"
               onClick={resetForm}
-              className="px-4 py-2 text-xs font-medium rounded-lg transition-colors"
+              className="px-5 py-2.5 text-[14px] font-semibold rounded-xl transition-colors tap-effect"
               style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}
             >
               Cancel
@@ -177,32 +177,32 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
       )}
 
       {/* List — scrollable when more than 7 items */}
-      <div className="px-4 py-2 overflow-y-auto" style={{ maxHeight: !preview && expenses.length > 7 ? '308px' : 'none' }}>
+      <div className="px-6 py-2 overflow-y-auto" style={{ maxHeight: !preview && expenses.length > 7 ? '340px' : 'none' }}>
         {loading ? (
-          <div className="py-6 flex justify-center">
-            <div className="w-5 h-5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-border-strong)', borderTopColor: 'transparent' }} />
+          <div className="py-8 flex justify-center">
+            <div className="w-6 h-6 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-border-strong)', borderTopColor: 'transparent' }} />
           </div>
         ) : expenses.length === 0 ? (
-          <p className="py-6 text-center text-xs" style={{ color: 'var(--color-text-muted)' }}>No expenses yet</p>
+          <p className="py-8 text-center text-[14px]" style={{ color: 'var(--color-text-muted)' }}>No expenses yet</p>
         ) : (
-          <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
+          <div className="divide-y" style={{ borderColor: 'var(--color-border-subtle)' }}>
             {displayItems.map((expense) => (
-              <div key={expense._id} className="flex items-center justify-between py-2.5 group">
+              <div key={expense._id} className="flex items-center justify-between py-3.5 group">
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{expense.title}</p>
-                  <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{formatDate(expense.date)}</p>
+                  <p className="text-[15px] font-medium truncate" style={{ color: 'var(--color-text)' }}>{expense.title}</p>
+                  <p className="text-[13px] mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{formatDate(expense.date)}</p>
                 </div>
-                <div className="flex items-center gap-2 ml-3">
-                  <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>
+                <div className="flex items-center gap-3 ml-4">
+                  <span className="text-[16px] font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>
                     {formatCurrency(expense.amount)}
                   </span>
                   {!preview && (
-                    <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(expense)} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }}>
-                        <FiEdit2 size={12} />
+                    <div className="flex gap-1 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(expense)} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors tap-effect" style={{ color: 'var(--color-text-secondary)' }}>
+                        <FiEdit2 size={14} />
                       </button>
-                      <button onClick={() => setDeleteId(expense._id)} className="p-1 rounded" style={{ color: 'var(--color-danger)' }}>
-                        <FiTrash2 size={12} />
+                      <button onClick={() => setDeleteId(expense._id)} className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors tap-effect" style={{ color: 'var(--color-danger)' }}>
+                        <FiTrash2 size={14} />
                       </button>
                     </div>
                   )}
@@ -215,18 +215,18 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
 
       {/* Footer */}
       {expenses.length > 0 && (
-        <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>Total</span>
-          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(total)}</span>
+        <div className="flex items-center justify-between px-6 py-4 mt-auto" style={{ borderTop: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-surface-alt)' }}>
+          <span className="text-[13px] font-semibold tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Total</span>
+          <span className="text-[18px] font-bold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(total)}</span>
         </div>
       )}
       {preview && expenses.length > PREVIEW_LIMIT && onViewAll && (
         <button
           onClick={onViewAll}
-          className="w-full py-2.5 text-xs font-medium transition-colors"
-          style={{ borderTop: '1px solid var(--color-border)', color: 'var(--color-text-muted)' }}
+          className="w-full py-4 text-[14px] font-semibold transition-colors mt-auto tap-effect"
+          style={{ borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-secondary)', backgroundColor: 'var(--color-surface-alt)' }}
           onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
         >
           View all {expenses.length} expenses →
         </button>

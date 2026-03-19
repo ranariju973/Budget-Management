@@ -4,44 +4,48 @@
 
 @theme {
   --color-surface: #ffffff;
-  --color-surface-alt: #fafafa;
-  --color-surface-hover: #f5f5f5;
-  --color-border: #e5e5e5;
-  --color-border-strong: #d4d4d4;
-  --color-text: #0a0a0a;
-  --color-text-secondary: #525252;
-  --color-text-muted: #a3a3a3;
-  --color-accent: #0a0a0a;
-  --color-accent-hover: #262626;
-  --color-danger: #dc2626;
-  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);
+  --color-surface-alt: #f5f5f7; /* Apple's light gray background */
+  --color-surface-hover: #e5e5ea;
+  --color-border: #e4e4e6;
+  --color-border-strong: #d1d1d6;
+  --color-text: #000000;
+  --color-text-secondary: #8e8e93; /* Apple's secondary text */
+  --color-text-muted: #aeaeb2;
+  --color-accent: #000000;
+  --color-accent-hover: #1c1c1e;
+  --color-danger: #ff3b30; /* iOS red */
+  --color-success: #34c759; /* iOS green */
+  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1); /* Spring-like easing */
+  --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .dark {
-  --color-surface: #0a0a0a;
-  --color-surface-alt: #141414;
-  --color-surface-hover: #1a1a1a;
-  --color-border: #262626;
-  --color-border-strong: #404040;
-  --color-text: #fafafa;
-  --color-text-secondary: #a3a3a3;
-  --color-text-muted: #525252;
-  --color-accent: #fafafa;
-  --color-accent-hover: #d4d4d4;
-  --color-danger: #ef4444;
+  --color-surface: #000000;
+  --color-surface-alt: #1c1c1e; /* iOS dark mode elevated surface */
+  --color-surface-hover: #2c2c2e;
+  --color-border: #38383a;
+  --color-border-strong: #48484a;
+  --color-text: #ffffff;
+  --color-text-secondary: #98989d;
+  --color-text-muted: #636366;
+  --color-accent: #ffffff;
+  --color-accent-hover: #f2f2f7;
+  --color-danger: #ff453a; /* iOS dark red */
+  --color-success: #30d158; /* iOS dark green */
 }
 
 /* ── Base ── */
 
 html {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-alt); /* iOS default background is not pure white on home, but gray */
   color: var(--color-text);
+  overscroll-behavior-y: none; /* iOS Safari bounce protection */
 }
 
 /* ── Scrollbar ── */
@@ -72,6 +76,36 @@ input[type="number"] {
 input:focus,
 button:focus-visible {
   outline: none;
+}
+
+/* ── Apple Inspired Utilities ── */
+
+.glass {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.dark .glass {
+  background: rgba(28, 28, 30, 0.75);
+}
+
+.tap-effect {
+  transition: transform 0.15s var(--ease-bounce), opacity 0.15s;
+  cursor: pointer;
+}
+
+.tap-effect:active {
+  transform: scale(0.95);
+  opacity: 0.8;
+}
+
+.card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card-shadow {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Auth page animations ── */

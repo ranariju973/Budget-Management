@@ -63,33 +63,33 @@ const IncomeSection = ({ month, year, onDataChange }) => {
   if (loading) {
     return (
       <div
-        className="rounded-xl p-5 animate-pulse"
-        style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)' }}
+        className="rounded-[24px] p-6 animate-pulse card-shadow"
+        style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}
       >
-        <div className="h-4 rounded w-28 mb-3" style={{ backgroundColor: 'var(--color-border)' }} />
-        <div className="h-8 rounded w-24" style={{ backgroundColor: 'var(--color-border)' }} />
+        <div className="h-4 rounded w-28 mb-3" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
+        <div className="h-8 rounded w-24" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
       </div>
     );
   }
 
   return (
     <div
-      className="rounded-xl p-5"
-      style={{ backgroundColor: 'var(--color-surface-alt)', border: '1px solid var(--color-border)' }}
+      className="rounded-[24px] p-6 card-shadow"
+      style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}
     >
       <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>
+        <span className="text-[14px] font-semibold tracking-tight" style={{ color: 'var(--color-text-secondary)' }}>
           Monthly Income
         </span>
         {income && !editing && (
           <button
             onClick={() => setEditing(true)}
-            className="p-1.5 rounded-md transition-colors"
+            className="p-1.5 rounded-full transition-colors tap-effect"
             style={{ color: 'var(--color-text-muted)' }}
-            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-muted)'; e.currentTarget.style.backgroundColor = 'transparent'; }}
           >
-            <FiEdit2 size={14} />
+            <FiEdit2 size={16} />
           </button>
         )}
       </div>
@@ -104,37 +104,36 @@ const IncomeSection = ({ month, year, onDataChange }) => {
             min="0"
             step="0.01"
             autoFocus
-            className="flex-1 max-w-50 px-3 py-2 text-sm rounded-lg"
+            className="flex-1 max-w-50 px-4 py-2 text-[15px] rounded-xl outline-none"
             style={{
-              backgroundColor: 'var(--color-surface)',
-              border: '1px solid var(--color-border-strong)',
+              backgroundColor: 'var(--color-surface-alt)',
               color: 'var(--color-text)',
             }}
           />
           <button
             onClick={handleSave}
             disabled={submitting}
-            className="p-2 rounded-lg transition-colors"
+            className="p-2.5 rounded-xl transition-colors tap-effect"
             style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
           >
             {submitting ? (
-              <div className="w-3.5 h-3.5 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-surface)', borderTopColor: 'transparent' }} />
+              <div className="w-4 h-4 border-2 rounded-full animate-spin" style={{ borderColor: 'var(--color-surface)', borderTopColor: 'transparent' }} />
             ) : (
-              <FiCheck size={14} />
+              <FiCheck size={16} className="stroke-[2.5px]" />
             )}
           </button>
           {editing && (
             <button
               onClick={handleCancel}
-              className="p-2 rounded-lg transition-colors"
+              className="p-2.5 rounded-xl transition-colors tap-effect"
               style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}
             >
-              <FiX size={14} />
+              <FiX size={16} className="stroke-[2.5px]" />
             </button>
           )}
         </div>
       ) : (
-        <p className="text-2xl font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>
+        <p className="text-[28px] font-bold tracking-tight tabular-nums mt-1" style={{ color: 'var(--color-text)' }}>
           {formatCurrency(income.amount)}
         </p>
       )}

@@ -8,9 +8,12 @@ const Navbar = () => {
 
   return (
     <header
-      className="sticky top-0 z-30 h-[60px] flex items-center justify-between px-4 lg:px-8 glass transition-colors"
+      className="sticky top-0 z-30 h-[60px] flex items-center justify-between px-4 lg:px-8 transition-colors"
       style={{
         borderBottom: '1px solid var(--color-border-subtle)',
+        backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
       <div className="flex items-center gap-3">

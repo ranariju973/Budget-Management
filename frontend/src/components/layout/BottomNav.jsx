@@ -1,9 +1,9 @@
+import { useTheme } from '../../context/ThemeContext';
 import {
   FiGrid,
   FiCreditCard,
   FiArrowDownLeft,
   FiArrowUpRight,
-  FiPieChart,
   FiSearch
 } from 'react-icons/fi';
 
@@ -16,8 +16,18 @@ const navItems = [
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
+  const { darkMode } = useTheme();
+
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 glass border-t border-[var(--color-border)] lg:hidden pb-safe">
+    <nav 
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors"
+      style={{
+        borderTop: '1px solid var(--color-border-subtle)',
+        backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+      }}
+    >
       <div className="flex items-center justify-around px-2 py-2">
         {navItems.map((item) => {
           const Icon = item.icon;

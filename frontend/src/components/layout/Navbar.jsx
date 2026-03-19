@@ -51,7 +51,7 @@ const Navbar = () => {
         </div>
         <div
           className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-background)' }}
+          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
         >
           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
         </div>

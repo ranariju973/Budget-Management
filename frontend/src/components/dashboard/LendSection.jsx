@@ -285,6 +285,8 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
         onConfirm={handleMarkAsPaid}
         title="Mark as Paid"
         message="The lent amount will be credited back to your balance. Continue?"
+        confirmLabel="Confirm"
+        confirmColor="#22c55e"
       />
     </div>
   );

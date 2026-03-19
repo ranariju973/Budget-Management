@@ -5,8 +5,21 @@ import { createPortal } from 'react-dom';
  * ConfirmModal — accessible modal with portal rendering + Escape key support.
  * Renders via createPortal to document.body to escape parent overflow/z-index.
  * Uses useEffect for Escape key listener — auto-cleans up on unmount.
+ *
+ * @param {string}  confirmLabel - Label for the confirm button (default: "Delete")
+ * @param {string}  confirmColor - Background color for the confirm button (default: danger)
+ * @param {string}  cancelLabel  - Label for the cancel button (default: "Cancel")
  */
-const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
+const ConfirmModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  confirmLabel = 'Delete',
+  confirmColor,
+  cancelLabel = 'Cancel',
+}) => {
   const handleEscape = useCallback((e) => {
     if (e.key === 'Escape') onClose();
   }, [onClose]);
@@ -19,6 +32,8 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
 
   if (!isOpen) return null;
 
+  const btnColor = confirmColor || 'var(--color-danger)';
+
   return createPortal(
     <div className="fixed inset-0 z-60 flex items-center justify-center p-4">
       <div
@@ -29,8 +44,8 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message }) => {
         <h3 className="text-sm font-semibold mb-1" style={{ color: 'var(--color-text)' }}>{title}</h3>
         <p className="text-xs mb-5" style={{ color: 'var(--color-text-muted)' }}>{message}</p>
         <div className="flex items-center justify-end gap-2">
-          <button onClick={onClose} className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}>Cancel</button>
-          <button onClick={onConfirm} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white transition-colors" style={{ backgroundColor: 'var(--color-danger)' }}>Delete</button>
+          <button onClick={onClose} className="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}>{cancelLabel}</button>
+          <button onClick={onConfirm} className="px-3 py-1.5 text-xs font-medium rounded-lg text-white transition-colors" style={{ backgroundColor: btnColor }}>{confirmLabel}</button>
         </div>
       </div>
     </div>,

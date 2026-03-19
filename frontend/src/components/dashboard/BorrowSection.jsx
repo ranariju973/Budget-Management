@@ -285,6 +285,8 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
         onConfirm={handleMarkAsPaid}
         title="Mark as Paid"
         message="This will add the borrowed amount to your expenses and decrease your balance. Continue?"
+        confirmLabel="Confirm"
+        confirmColor="#22c55e"
       />
     </div>
   );

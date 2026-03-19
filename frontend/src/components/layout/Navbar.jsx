@@ -1,33 +1,54 @@
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { FiSun, FiMoon, FiLogOut } from 'react-icons/fi';
 
 const Navbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const { darkMode, toggleTheme } = useTheme();
 
   return (
     <header
-      className="sticky top-0 z-30 h-14 flex items-center justify-between px-4 lg:px-8 glass"
+      className="sticky top-0 z-30 h-[60px] flex items-center justify-between px-4 lg:px-8 glass transition-colors"
       style={{
-        borderBottom: '1px solid var(--color-border)',
+        borderBottom: '1px solid var(--color-border-subtle)',
       }}
     >
       <div className="flex items-center gap-3">
-        <span className="text-[17px] font-semibold tracking-tight" style={{ color: 'var(--color-text)' }}>
+        <span className="text-[18px] font-bold tracking-tight" style={{ color: 'var(--color-text)' }}>
           FinKart
         </span>
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col items-end hidden sm:flex">
-          <span className="text-[13px] font-medium leading-none" style={{ color: 'var(--color-text)' }}>
-            {user?.name}
+      <div className="flex items-center gap-4">
+        {/* Mobile quick actions */}
+        <div className="flex items-center gap-2 lg:hidden">
+          <button 
+            onClick={toggleTheme} 
+            className="p-2 rounded-full tap-effect"
+            style={{ color: 'var(--color-text)' }}
+          >
+            {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
+          </button>
+          <button 
+            onClick={logout} 
+            className="p-2 rounded-full tap-effect"
+            style={{ color: 'var(--color-danger)' }}
+          >
+            <FiLogOut size={20} />
+          </button>
+        </div>
+
+        <div className="hidden sm:flex flex-col items-end mr-1">
+          <span className="text-[14px] font-semibold leading-none tracking-tight" style={{ color: 'var(--color-text)' }}>
+            {user?.name || 'User'}
           </span>
-          <span className="text-[11px] mt-1" style={{ color: 'var(--color-text-muted)' }}>
+          <span className="text-[12px] mt-1 font-medium" style={{ color: 'var(--color-text-muted)' }}>
             My Budget
           </span>
         </div>
         <div
-          className="w-8 h-8 rounded-full flex items-center justify-center text-[13px] font-bold shadow-sm"
-          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm"
+          style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-background)' }}
         >
           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
         </div>

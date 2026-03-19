@@ -1,10 +1,12 @@
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { FiSun, FiMoon, FiLogOut } from 'react-icons/fi';
+import { FiSun, FiMoon, FiLogOut, FiPieChart } from 'react-icons/fi';
 
-const Navbar = () => {
+const Navbar = ({ setActiveSection }) => {
   const { user, logout } = useAuth();
   const { darkMode, toggleTheme } = useTheme();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <header
@@ -22,25 +24,7 @@ const Navbar = () => {
         </span>
       </div>
 
-      <div className="flex items-center gap-4">
-        {/* Mobile quick actions */}
-        <div className="flex items-center gap-2 lg:hidden">
-          <button 
-            onClick={toggleTheme} 
-            className="p-2 rounded-full tap-effect"
-            style={{ color: 'var(--color-text)' }}
-          >
-            {darkMode ? <FiSun size={20} /> : <FiMoon size={20} />}
-          </button>
-          <button 
-            onClick={logout} 
-            className="p-2 rounded-full tap-effect"
-            style={{ color: 'var(--color-danger)' }}
-          >
-            <FiLogOut size={20} />
-          </button>
-        </div>
-
+      <div className="flex items-center gap-4 relative">
         <div className="hidden sm:flex flex-col items-end mr-1">
           <span className="text-[14px] font-semibold leading-none tracking-tight" style={{ color: 'var(--color-text)' }}>
             {user?.name || 'User'}
@@ -49,12 +33,58 @@ const Navbar = () => {
             My Budget
           </span>
         </div>
-        <div
-          className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm"
+        
+        <button
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm tap-effect"
           style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
         >
           {user?.name?.charAt(0)?.toUpperCase() || 'U'}
-        </div>
+        </button>
+
+        {/* Mobile iOS-style Dropdown Menu */}
+        {menuOpen && (
+          <>
+            <div className="fixed inset-0 z-40 lg:hidden" onClick={() => setMenuOpen(false)} />
+            <div 
+              className="absolute top-12 right-0 w-[220px] rounded-[20px] shadow-xl z-50 overflow-hidden lg:hidden"
+              style={{
+                backgroundColor: darkMode ? 'rgba(28,28,30,0.85)' : 'rgba(242,242,247,0.85)',
+                border: '1px solid var(--color-border-subtle)',
+                backdropFilter: 'blur(30px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(30px) saturate(180%)',
+              }}
+            >
+              <div className="px-4 py-3" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
+                <p className="font-semibold text-[14px] truncate" style={{ color: 'var(--color-text)' }}>{user?.name}</p>
+                <p className="text-[12px] truncate" style={{ color: 'var(--color-text-muted)' }}>{user?.email}</p>
+              </div>
+              <div className="p-1.5 flex flex-col gap-1">
+                <button 
+                  onClick={() => { if(setActiveSection) setActiveSection('charts'); setMenuOpen(false); }} 
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
+                  style={{ color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
+                >
+                  Spend Analysis <FiPieChart size={16} style={{ color: 'var(--color-text-secondary)' }} />
+                </button>
+                <button 
+                  onClick={() => { toggleTheme(); setMenuOpen(false); }} 
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
+                  style={{ color: 'var(--color-text)', backgroundColor: 'var(--color-surface)' }}
+                >
+                  {darkMode ? 'Light Mode' : 'Dark Mode'} {darkMode ? <FiSun size={16} style={{ color: 'var(--color-text-secondary)' }} /> : <FiMoon size={16} style={{ color: 'var(--color-text-secondary)' }} />}
+                </button>
+                <button 
+                  onClick={() => { logout(); setMenuOpen(false); }} 
+                  className="w-full flex items-center justify-between px-3 py-2.5 text-[14px] font-medium rounded-[12px] tap-effect" 
+                  style={{ color: 'var(--color-danger)', backgroundColor: 'var(--color-surface)' }}
+                >
+                  Logout <FiLogOut size={16} />
+                </button>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </header>
   );

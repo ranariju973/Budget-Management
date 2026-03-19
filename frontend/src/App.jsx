@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import OAuthCallback from './pages/OAuthCallback';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
@@ -46,6 +47,10 @@ function App() {
         <Route
           path="/signup"
           element={isAuthenticated ? <Navigate to="/" replace /> : <Signup />}
+        />
+        <Route
+          path="/oauth-callback"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <OAuthCallback />}
         />
 
         {/* Protected Routes */}

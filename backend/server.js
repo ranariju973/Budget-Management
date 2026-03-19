@@ -5,6 +5,7 @@ const hpp = require('hpp');
 const compression = require('compression');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const passport = require('passport'); // Add passport
 const connectDB = require('./config/db');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 const { sanitizeInput } = require('./middleware/sanitize');
@@ -12,10 +13,16 @@ const { sanitizeInput } = require('./middleware/sanitize');
 // Load environment variables
 dotenv.config();
 
+// Initialize passport config AFTER dotenv.config()
+require('./config/passport');
+
 // Connect to MongoDB
 connectDB();
 
 const app = express();
+
+// Initialize Passport
+app.use(passport.initialize());
 
 // Trust first proxy (Render, Heroku, etc.) so rate-limiter reads real client IP
 app.set('trust proxy', 1);

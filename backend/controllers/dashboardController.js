@@ -9,13 +9,12 @@ const { handleError } = require('../utils/errorHandler');
  * @route   GET /api/dashboard
  * @access  Private
  *
- * Architecture:
- *  - Runs all 5 queries in parallel via Promise.all (same as before, but 1 HTTP request)
- *  - Uses HashMap (Object.create(null)) for O(1) spending lookups
- *  - maxTimeMS guards prevent runaway aggregations
- *  - Returns: { summary, income, expenses, borrows, lends }
- *
- * Time: O(1) HTTP round-trip × O(k) per-collection scans where k = matching docs
+ * Balance formula:
+ *  - Borrows do NOT affect balance (unpaid borrows are just tracked;
+ *    paid borrows already created an expense via markAsPaid)
+ *  - Lends subtract from balance when unpaid; when marked as paid,
+ *    the amount is credited back
+ *  - Formula: income - totalExpenses - totalUnpaidLends
  */
 const getDashboardData = async (req, res) => {
   try {
@@ -31,12 +30,13 @@ const getDashboardData = async (req, res) => {
 
     const sumPipeline = [{ $group: { _id: null, total: { $sum: '$amount' } } }];
 
-    // Run all 6 queries in parallel — O(1) network round-trips
+    // Run all queries in parallel
     const [
       incomeDoc,
       expenseAgg,
       borrowAgg,
       lendAgg,
+      unpaidLendAgg,
       expenses,
       borrows,
       lends,
@@ -45,6 +45,7 @@ const getDashboardData = async (req, res) => {
       Expense.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
       Borrow.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
       Lend.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
+      Lend.aggregate([{ $match: { ...dateFilter, isPaid: { $ne: true } } }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
       Expense.find(dateFilter).sort({ date: -1 }).lean(),
       Borrow.find(dateFilter).sort({ date: -1 }).lean(),
       Lend.find(dateFilter).sort({ date: -1 }).lean(),
@@ -54,8 +55,11 @@ const getDashboardData = async (req, res) => {
     const totalExpenses = expenseAgg[0]?.total || 0;
     const totalBorrowing = borrowAgg[0]?.total || 0;
     const totalLent = lendAgg[0]?.total || 0;
-    // Borrow = money received (adds to balance), Lend = money given (subtracts)
-    const remainingBalance = income - totalExpenses + totalBorrowing - totalLent;
+    const totalUnpaidLends = unpaidLendAgg[0]?.total || 0;
+
+    // Borrows don't affect balance (paid borrows already created expenses)
+    // Only unpaid lends subtract from balance
+    const remainingBalance = income - totalExpenses - totalUnpaidLends;
 
     res.json({
       summary: {

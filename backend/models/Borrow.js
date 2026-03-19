@@ -25,6 +25,14 @@ const borrowSchema = new mongoose.Schema({
     trim: true,
     default: '',
   },
+  isPaid: {
+    type: Boolean,
+    default: false,
+  },
+  paidDate: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 // Index for fast user+date filtered queries

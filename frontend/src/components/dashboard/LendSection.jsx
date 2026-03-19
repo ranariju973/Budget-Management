@@ -4,11 +4,12 @@ import {
   createLend,
   updateLend,
   deleteLend,
+  markLendAsPaid,
 } from '../../services/lendService';
 import { formatCurrency, formatDate, formatDateForInput } from '../../utils/helpers';
 import ConfirmModal from '../common/ConfirmModal';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiCheck } from 'react-icons/fi';
 
 const PREVIEW_LIMIT = 3;
 
@@ -18,6 +19,7 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [markPaidId, setMarkPaidId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     personName: '',
@@ -95,7 +97,20 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
     }
   };
 
+  const handleMarkAsPaid = async () => {
+    try {
+      await markLendAsPaid(markPaidId);
+      toast.success('Marked as paid — amount credited back');
+      setMarkPaidId(null);
+      fetchLends();
+      onDataChange();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to mark as paid');
+    }
+  };
+
   const total = lends.reduce((sum, l) => sum + l.amount, 0);
+  const unpaidTotal = lends.filter((l) => !l.isPaid).reduce((sum, l) => sum + l.amount, 0);
   const displayItems = preview ? lends.slice(0, PREVIEW_LIMIT) : lends;
 
   return (
@@ -192,9 +207,16 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
             {displayItems.map((l) => (
-              <div key={l._id} className="flex items-center justify-between py-2.5 group">
+              <div key={l._id} className="flex items-center justify-between py-2.5 group" style={{ opacity: l.isPaid ? 0.6 : 1 }}>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{l.personName}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)', textDecoration: l.isPaid ? 'line-through' : 'none' }}>{l.personName}</p>
+                    {l.isPaid && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                        Paid
+                      </span>
+                    )}
+                  </div>
                   {l.reason && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--color-text-secondary)' }}>{l.reason}</p>}
                   <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{formatDate(l.date)}</p>
                 </div>
@@ -204,9 +226,21 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
                   </span>
                   {!preview && (
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(l)} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }}>
-                        <FiEdit2 size={12} />
-                      </button>
+                      {!l.isPaid && (
+                        <button
+                          onClick={() => setMarkPaidId(l._id)}
+                          className="p-1 rounded"
+                          style={{ color: '#22c55e' }}
+                          title="Mark as Paid"
+                        >
+                          <FiCheck size={12} />
+                        </button>
+                      )}
+                      {!l.isPaid && (
+                        <button onClick={() => handleEdit(l)} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }}>
+                          <FiEdit2 size={12} />
+                        </button>
+                      )}
                       <button onClick={() => setDeleteId(l._id)} className="p-1 rounded" style={{ color: 'var(--color-danger)' }}>
                         <FiTrash2 size={12} />
                       </button>
@@ -222,8 +256,8 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
       {/* Footer */}
       {lends.length > 0 && (
         <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>Total</span>
-          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(total)}</span>
+          <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>Unpaid</span>
+          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(unpaidTotal)}</span>
         </div>
       )}
       {preview && lends.length > PREVIEW_LIMIT && onViewAll && (
@@ -244,6 +278,13 @@ const LendSection = ({ month, year, onDataChange, preview = false, onViewAll }) 
         onConfirm={handleDelete}
         title="Delete Lend"
         message="This action cannot be undone."
+      />
+      <ConfirmModal
+        isOpen={!!markPaidId}
+        onClose={() => setMarkPaidId(null)}
+        onConfirm={handleMarkAsPaid}
+        title="Mark as Paid"
+        message="The lent amount will be credited back to your balance. Continue?"
       />
     </div>
   );

@@ -8,6 +8,11 @@ const { handleError } = require('../utils/errorHandler');
  * @desc    Get financial summary for user (month/year)
  * @route   GET /api/summary
  * @access  Private
+ *
+ * Balance formula:
+ *  - Borrows do NOT affect balance
+ *  - Unpaid lends subtract from balance; paid lends are credited back
+ *  - Formula: income - totalExpenses - totalUnpaidLends
  */
 const getSummary = async (req, res) => {
   try {
@@ -23,20 +28,22 @@ const getSummary = async (req, res) => {
 
     const sumPipeline = [{ $group: { _id: null, total: { $sum: '$amount' } } }];
 
-    // Run all 4 queries in parallel — O(1) aggregation per collection with maxTimeMS guard
-    const [incomeDoc, expenseAgg, borrowAgg, lendAgg] = await Promise.all([
+    const [incomeDoc, expenseAgg, borrowAgg, lendAgg, unpaidLendAgg] = await Promise.all([
       Income.findOne({ userId: req.user._id, month, year }).lean(),
       Expense.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
       Borrow.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
       Lend.aggregate([{ $match: dateFilter }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
+      Lend.aggregate([{ $match: { ...dateFilter, isPaid: { $ne: true } } }, ...sumPipeline]).option({ maxTimeMS: 5000 }),
     ]);
 
     const income = incomeDoc?.amount || 0;
     const totalExpenses = expenseAgg[0]?.total || 0;
     const totalBorrowing = borrowAgg[0]?.total || 0;
     const totalLent = lendAgg[0]?.total || 0;
-    // Borrow = money received (adds to balance), Lend = money given (subtracts from balance)
-    const remainingBalance = income - totalExpenses + totalBorrowing - totalLent;
+    const totalUnpaidLends = unpaidLendAgg[0]?.total || 0;
+
+    // Borrows don't affect balance; only unpaid lends subtract
+    const remainingBalance = income - totalExpenses - totalUnpaidLends;
 
     res.json({
       month,

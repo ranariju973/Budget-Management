@@ -4,11 +4,12 @@ import {
   createBorrow,
   updateBorrow,
   deleteBorrow,
+  markBorrowAsPaid,
 } from '../../services/borrowService';
 import { formatCurrency, formatDate, formatDateForInput } from '../../utils/helpers';
 import ConfirmModal from '../common/ConfirmModal';
 import toast from 'react-hot-toast';
-import { FiPlus, FiEdit2, FiTrash2 } from 'react-icons/fi';
+import { FiPlus, FiEdit2, FiTrash2, FiCheck } from 'react-icons/fi';
 
 const PREVIEW_LIMIT = 3;
 
@@ -18,6 +19,7 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [deleteId, setDeleteId] = useState(null);
+  const [markPaidId, setMarkPaidId] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     personName: '',
@@ -95,7 +97,20 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
     }
   };
 
+  const handleMarkAsPaid = async () => {
+    try {
+      await markBorrowAsPaid(markPaidId);
+      toast.success('Marked as paid — added to expenses');
+      setMarkPaidId(null);
+      fetchBorrows();
+      onDataChange();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to mark as paid');
+    }
+  };
+
   const total = borrows.reduce((sum, b) => sum + b.amount, 0);
+  const unpaidTotal = borrows.filter((b) => !b.isPaid).reduce((sum, b) => sum + b.amount, 0);
   const displayItems = preview ? borrows.slice(0, PREVIEW_LIMIT) : borrows;
 
   return (
@@ -192,9 +207,16 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-border)' }}>
             {displayItems.map((b) => (
-              <div key={b._id} className="flex items-center justify-between py-2.5 group">
+              <div key={b._id} className="flex items-center justify-between py-2.5 group" style={{ opacity: b.isPaid ? 0.6 : 1 }}>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)' }}>{b.personName}</p>
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--color-text)', textDecoration: b.isPaid ? 'line-through' : 'none' }}>{b.personName}</p>
+                    {b.isPaid && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-full font-medium" style={{ backgroundColor: 'rgba(34,197,94,0.15)', color: '#22c55e' }}>
+                        Paid
+                      </span>
+                    )}
+                  </div>
                   {b.reason && <p className="text-xs mt-0.5 truncate" style={{ color: 'var(--color-text-secondary)' }}>{b.reason}</p>}
                   <p className="text-xs mt-0.5" style={{ color: 'var(--color-text-muted)' }}>{formatDate(b.date)}</p>
                 </div>
@@ -204,9 +226,21 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
                   </span>
                   {!preview && (
                     <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(b)} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }}>
-                        <FiEdit2 size={12} />
-                      </button>
+                      {!b.isPaid && (
+                        <button
+                          onClick={() => setMarkPaidId(b._id)}
+                          className="p-1 rounded"
+                          style={{ color: '#22c55e' }}
+                          title="Mark as Paid"
+                        >
+                          <FiCheck size={12} />
+                        </button>
+                      )}
+                      {!b.isPaid && (
+                        <button onClick={() => handleEdit(b)} className="p-1 rounded" style={{ color: 'var(--color-text-muted)' }}>
+                          <FiEdit2 size={12} />
+                        </button>
+                      )}
                       <button onClick={() => setDeleteId(b._id)} className="p-1 rounded" style={{ color: 'var(--color-danger)' }}>
                         <FiTrash2 size={12} />
                       </button>
@@ -222,8 +256,8 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
       {/* Footer */}
       {borrows.length > 0 && (
         <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--color-border)' }}>
-          <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>Total</span>
-          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(total)}</span>
+          <span className="text-xs font-medium uppercase tracking-wide" style={{ color: 'var(--color-text-muted)' }}>Unpaid</span>
+          <span className="text-sm font-semibold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(unpaidTotal)}</span>
         </div>
       )}
       {preview && borrows.length > PREVIEW_LIMIT && onViewAll && (
@@ -244,6 +278,13 @@ const BorrowSection = ({ month, year, onDataChange, preview = false, onViewAll }
         onConfirm={handleDelete}
         title="Delete Borrow"
         message="This action cannot be undone."
+      />
+      <ConfirmModal
+        isOpen={!!markPaidId}
+        onClose={() => setMarkPaidId(null)}
+        onConfirm={handleMarkAsPaid}
+        title="Mark as Paid"
+        message="This will add the borrowed amount to your expenses and decrease your balance. Continue?"
       />
     </div>
   );

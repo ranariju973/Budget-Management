@@ -6,16 +6,16 @@ import toast from 'react-hot-toast';
 const OAuthCallback = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { fetchUser } = useAuth(); // We need a way to set the token and fetch user
+  const { setToken } = useAuth();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const token = params.get('token');
 
-    const handleOAuth = async () => {
+    const handleOAuth = () => {
       if (token) {
         localStorage.setItem('token', token);
-        await fetchUser();
+        setToken(token);
         toast.success('Successfully logged in with Google!');
         navigate('/');
       } else {
@@ -25,7 +25,7 @@ const OAuthCallback = () => {
     };
 
     handleOAuth();
-  }, [location, navigate, fetchUser]);
+  }, [location, navigate, setToken]);
 
   return (
     <div className="flex h-screen w-screen items-center justify-center bg-surface">

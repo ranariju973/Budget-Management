@@ -29,10 +29,12 @@ router.get(
       algorithm: 'HS256',
     });
 
-    // Use the first allowed origin as the frontend URL (or fallback to localhost:5173)
-    let frontendUrl = 'http://localhost:5173';
-    if (process.env.ALLOWED_ORIGINS) {
-      frontendUrl = process.env.ALLOWED_ORIGINS.split(',')[0];
+    // Prefer explicit FRONTEND_URL, fallback to the first allowed origin, or localhost
+    let frontendUrl = process.env.FRONTEND_URL;
+    if (!frontendUrl) {
+      frontendUrl = process.env.ALLOWED_ORIGINS 
+        ? process.env.ALLOWED_ORIGINS.split(',')[0] 
+        : 'http://localhost:5173';
     }
 
     // Redirect to frontend with token

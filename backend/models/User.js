@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     unique: true,
     sparse: true,
   },
+  pushSubscriptions: {
+    type: Array, // Array of subscription objects { endpoint, keys: { p256dh, auth } }
+    default: [],
+  },
   createdAt: {
     type: Date,
     default: Date.now,

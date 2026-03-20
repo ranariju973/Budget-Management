@@ -9,6 +9,7 @@ const passport = require('passport'); // Add passport
 const connectDB = require('./config/db');
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 const { sanitizeInput } = require('./middleware/sanitize');
+const { initCronJobs } = require('./services/cronJobs');
 
 // Load environment variables
 dotenv.config();
@@ -18,6 +19,9 @@ require('./config/passport');
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize Cron Jobs
+initCronJobs();
 
 const app = express();
 
@@ -86,6 +90,7 @@ app.use('/api/summary', require('./routes/summaryRoutes'));
 app.use('/api/budget-goals', require('./routes/budgetGoalRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

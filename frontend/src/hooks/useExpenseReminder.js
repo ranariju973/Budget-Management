@@ -1,81 +1,77 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
+import api from '../services/api';
+
+// Base64Url to Uint8Array converter for VAPID key
+const urlBase64ToUint8Array = (base64String) => {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+};
 
 /**
- * useExpenseReminder — Browser notification at 10:00 PM daily.
- * Asks "Have you added your expenses today?" as a gentle nudge.
- *
+ * useExpenseReminder - True Web Push Notifications
  * - Requests Notification permission on mount
- * - Checks every 30s if it's 22:00 (or 2:35 AM for testing)
- * - Uses localStorage to avoid duplicate notifications on the same day
+ * - Registers Service Worker
+ * - Subscribes to PushManager
+ * - Sends subscription to backend
  */
-const REMINDER_HOUR = 22; // 10 PM
-const TEST_HOUR = 2;      // 2:35 AM (testing)
-const TEST_MINUTE = 35;
-const STORAGE_KEY = 'lastExpenseReminderDate';
-const TEST_STORAGE_KEY = 'lastExpenseReminderTest';
-const CHECK_INTERVAL = 30_000; // 30 seconds
-
 const useExpenseReminder = () => {
-  const timerRef = useRef(null);
-
   useEffect(() => {
-    // Skip if browser doesn't support notifications
-    if (!('Notification' in window)) return;
-
-    // Request permission (no-op if already granted/denied)
-    if (Notification.permission === 'default') {
-      Notification.requestPermission();
+    // Skip if browser doesn't support Service Workers or Push API
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+      console.warn('Push messaging is not supported by this browser.');
+      return;
     }
 
-    const checkAndNotify = () => {
-      if (Notification.permission !== 'granted') return;
+    const initPushNotifications = async () => {
+      try {
+        // Request permission
+        if (Notification.permission === 'default') {
+          const permission = await Notification.requestPermission();
+          if (permission !== 'granted') return;
+        } else if (Notification.permission !== 'granted') {
+          return;
+        }
 
-      const now = new Date();
-      const today = now.toISOString().split('T')[0]; // "YYYY-MM-DD"
-      const lastSent = localStorage.getItem(STORAGE_KEY);
+        // Register Service Worker
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        await navigator.serviceWorker.ready;
 
-      // Fire only once per day, at or after 10 PM
-      if (now.getHours() >= REMINDER_HOUR && lastSent !== today) {
-        localStorage.setItem(STORAGE_KEY, today);
+        // Check for existing subscription to avoid unnecessary API calls
+        let subscription = await registration.pushManager.getSubscription();
+        
+        if (!subscription) {
+          // Fetch VAPID public key from backend
+          const res = await api.get('/notifications/vapidPublicKey');
+          const vapidPublicKey = res.data.publicKey;
+          const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
 
-        const notification = new Notification('FinKart — Expense Reminder', {
-          body: 'Have you added your expenses today? Keep your budget on track!',
-          icon: '/favicon.ico',
-          tag: 'expense-reminder', // prevents stacking duplicates
-          requireInteraction: false,
-        });
+          // Subscribe to PushManager
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: convertedVapidKey
+          });
+        }
 
-        // Auto-close after 8 seconds
-        setTimeout(() => notification.close(), 8000);
-      }
+        // Send subscription to backend
+        await api.post('/notifications/subscribe', subscription);
+        console.log('Successfully registered for Web Push notifications.');
 
-      // Testing notification at 2:35 AM
-      const lastTest = localStorage.getItem(TEST_STORAGE_KEY);
-      if (
-        now.getHours() === TEST_HOUR &&
-        now.getMinutes() >= TEST_MINUTE &&
-        lastTest !== today
-      ) {
-        localStorage.setItem(TEST_STORAGE_KEY, today);
-
-        const notification = new Notification('FinKart — Test Notification', {
-          body: '🔔 Testing! This is your 2:35 AM test notification.',
-          icon: '/favicon.ico',
-          tag: 'expense-reminder-test',
-          requireInteraction: false,
-        });
-
-        setTimeout(() => notification.close(), 8000);
+      } catch (error) {
+        console.error('Failed to initialize push notifications:', error);
       }
     };
 
-    // Check immediately on mount, then every 30s
-    checkAndNotify();
-    timerRef.current = setInterval(checkAndNotify, CHECK_INTERVAL);
-
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
+    initPushNotifications();
   }, []);
 };
 

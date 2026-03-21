@@ -102,7 +102,7 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
   const displayItems = preview ? expenses.slice(0, PREVIEW_LIMIT) : expenses;
 
   return (
-    <div className="rounded-[24px] overflow-hidden card-shadow flex flex-col" style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}>
+    <div className="rounded-[24px] overflow-hidden card-shadow liquid-panel liquid-reveal flex flex-col" style={{ border: 'none' }}>
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
         <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
 
       {/* Form */}
       {!preview && showForm && (
-        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-3" style={{ borderBottom: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-surface-alt)' }}>
+        <form onSubmit={handleSubmit} className="px-6 py-4 space-y-3 liquid-soft" style={{ borderBottom: '1px solid var(--color-border-subtle)' }}>
           <input
             type="text"
             placeholder="Name"
@@ -215,7 +215,7 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
 
       {/* Footer */}
       {expenses.length > 0 && (
-        <div className="flex items-center justify-between px-6 py-4 mt-auto" style={{ borderTop: '1px solid var(--color-border-subtle)', backgroundColor: 'var(--color-surface-alt)' }}>
+        <div className="flex items-center justify-between px-6 py-4 mt-auto liquid-soft" style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
           <span className="text-[13px] font-semibold tracking-wide" style={{ color: 'var(--color-text-secondary)' }}>Total</span>
           <span className="text-[18px] font-bold tabular-nums" style={{ color: 'var(--color-text)' }}>{formatCurrency(total)}</span>
         </div>
@@ -224,7 +224,7 @@ const ExpenseSection = ({ month, year, onDataChange, preview = false, onViewAll 
         <button
           onClick={onViewAll}
           className="w-full py-4 text-[14px] font-semibold transition-colors mt-auto tap-effect"
-          style={{ borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-secondary)', backgroundColor: 'var(--color-surface-alt)' }}
+          style={{ borderTop: '1px solid var(--color-border-subtle)', color: 'var(--color-text-secondary)', backgroundColor: 'var(--liquid-panel-soft)' }}
           onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--color-text)'; }}
           onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--color-text-secondary)'; }}
         >

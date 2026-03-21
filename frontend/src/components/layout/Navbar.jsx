@@ -11,12 +11,9 @@ const Navbar = ({ setActiveSection }) => {
   return (
     <>
       <header
-        className="sticky top-0 z-30 h-[60px] flex items-center justify-between px-4 lg:px-8 transition-colors"
+        className="sticky top-0 z-30 h-[60px] flex items-center justify-between px-4 lg:px-8 transition-colors liquid-nav"
         style={{
           borderBottom: '1px solid var(--color-border-subtle)',
-          backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-          backdropFilter: 'blur(24px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(24px) saturate(180%)',
         }}
       >
         <div className="flex items-center gap-3">
@@ -37,8 +34,8 @@ const Navbar = ({ setActiveSection }) => {
           
           <button
             onClick={() => setMenuOpen(!menuOpen)}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm tap-effect"
-            style={{ backgroundColor: 'var(--color-accent)', color: 'var(--color-surface)' }}
+            className="w-9 h-9 rounded-full flex items-center justify-center text-[14px] font-bold shadow-sm tap-effect liquid-soft"
+            style={{ color: 'var(--color-text)' }}
           >
             {user?.name?.charAt(0)?.toUpperCase() || 'U'}
           </button>
@@ -51,12 +48,8 @@ const Navbar = ({ setActiveSection }) => {
           <div className="absolute inset-0" onClick={() => setMenuOpen(false)} />
           
           <div 
-            className="absolute top-[68px] right-4 w-[240px] rounded-[16px] shadow-2xl overflow-hidden"
+            className="absolute top-[68px] right-4 w-[240px] rounded-[16px] shadow-2xl overflow-hidden liquid-panel"
             style={{
-              backgroundColor: darkMode ? 'rgba(30,30,30,0.65)' : 'rgba(250,250,250,0.65)',
-              border: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)',
-              backdropFilter: 'blur(40px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(200%)',
             }}
           >
             <div className="px-4 py-3" style={{ borderBottom: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)' }}>

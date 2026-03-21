@@ -153,8 +153,8 @@ const SearchResults = ({ onClose }) => {
       {/* Filter Panel */}
       {showFilters && (
         <div
-          className="rounded-lg p-4 space-y-3"
-          style={{ backgroundColor: 'var(--color-surface-hover)', border: '1px solid var(--color-border)' }}
+          className="rounded-lg p-4 space-y-3 liquid-soft"
+          style={{ border: '1px solid var(--color-border)' }}
         >
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {/* Type filter */}
@@ -267,8 +267,8 @@ const SearchResults = ({ onClose }) => {
             return (
               <div
                 key={`${item._type}-${item._id}`}
-                className="flex items-center justify-between p-3 rounded-lg transition-colors hover:opacity-90"
-                style={{ backgroundColor: config.bg, border: `1px solid ${config.color}15` }}
+                className="flex items-center justify-between p-3 rounded-lg transition-colors hover:opacity-90 liquid-reveal"
+                style={{ backgroundColor: config.bg, border: `1px solid ${config.color}22` }}
               >
                 <div className="flex items-center gap-3 min-w-0">
                   <div

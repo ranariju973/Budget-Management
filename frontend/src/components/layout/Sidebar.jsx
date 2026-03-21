@@ -33,7 +33,7 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
   return (
     <>
       <aside
-        className="fixed top-0 left-0 z-40 h-full w-60 hidden lg:flex flex-col glass"
+        className="fixed top-0 left-0 z-40 h-full w-60 hidden lg:flex flex-col glass liquid-reveal"
         style={{
           borderRight: '1px solid var(--color-border)',
         }}
@@ -74,12 +74,12 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
               <button
                 key={item.section}
                 onClick={() => handleNavClick(item.section)}
-                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors duration-150"
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-all duration-150"
                 style={{
-                  backgroundColor: isActive ? 'var(--color-surface-hover)' : 'transparent',
+                  backgroundColor: isActive ? 'var(--liquid-panel-soft)' : 'transparent',
                   color: isActive ? 'var(--color-text)' : 'var(--color-text-secondary)',
                 }}
-                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'var(--color-surface-hover)'; }}
+                onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'var(--liquid-panel-soft)'; }}
                 onMouseLeave={(e) => { if (!isActive) e.currentTarget.style.backgroundColor = 'transparent'; }}
               >
                 <Icon size={16} className={isActive ? 'stroke-[2.5px]' : 'stroke-2'} />

@@ -66,7 +66,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen liquid-shell">
+    <div className="min-h-screen" style={{ backgroundColor: 'var(--color-surface-alt)' }}>
       <Sidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
@@ -75,7 +75,7 @@ const Dashboard = () => {
       <div className="lg:ml-60 pb-20 lg:pb-0"> {/* padding bottom for mobile BottomNav */}
         <Navbar setActiveSection={setActiveSection} />
 
-        <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto liquid-reveal">
+        <main className="px-4 py-6 lg:px-8 lg:py-8 max-w-6xl mx-auto">
           {/* Header with Month Navigator */}
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-8">
             <div>
@@ -85,8 +85,8 @@ const Dashboard = () => {
               <MonthNavigator month={month} year={year} onChange={handleMonthChange} />
             </div>
             {!isCurrentMonth && (
-              <span className="hidden sm:inline text-xs font-medium px-3 py-1 rounded-full liquid-soft"
-                style={{ color: 'var(--color-text-muted)' }}>
+              <span className="hidden sm:inline text-xs font-medium px-3 py-1 rounded-full"
+                style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-muted)' }}>
                 Viewing past data
               </span>
             )}

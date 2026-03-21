@@ -1,3 +1,4 @@
+import { useTheme } from '../../context/ThemeContext';
 import {
   FiGrid,
   FiCreditCard,
@@ -15,11 +16,16 @@ const navItems = [
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
+  const { darkMode } = useTheme();
+
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors liquid-nav"
+      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors"
       style={{
         borderTop: '1px solid var(--color-border-subtle)',
+        backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
+        backdropFilter: 'blur(24px) saturate(180%)',
+        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
       <div className="flex items-center justify-around px-2 py-2">
@@ -30,9 +36,8 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
             <button
               key={item.section}
               onClick={() => setActiveSection(item.section)}
-              className="flex flex-col items-center justify-center w-14 h-12 tap-effect rounded-xl transition-all"
+              className="flex flex-col items-center justify-center w-14 h-12 tap-effect"
               style={{
-                backgroundColor: isActive ? 'var(--liquid-panel-soft)' : 'transparent',
                 color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
               }}
             >

@@ -63,8 +63,8 @@ const IncomeSection = ({ month, year, onDataChange }) => {
   if (loading) {
     return (
       <div
-        className="rounded-[24px] p-6 animate-pulse card-shadow liquid-panel"
-        style={{ border: 'none' }}
+        className="rounded-[24px] p-6 animate-pulse card-shadow"
+        style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}
       >
         <div className="h-4 rounded w-28 mb-3" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
         <div className="h-8 rounded w-24" style={{ backgroundColor: 'var(--color-surface-hover)' }} />
@@ -74,8 +74,8 @@ const IncomeSection = ({ month, year, onDataChange }) => {
 
   return (
     <div
-      className="rounded-[24px] p-6 card-shadow liquid-panel liquid-reveal"
-      style={{ border: 'none' }}
+      className="rounded-[24px] p-6 card-shadow"
+      style={{ backgroundColor: 'var(--color-surface)', border: 'none' }}
     >
       <div className="flex items-center justify-between mb-3">
         <span className="text-[14px] font-semibold tracking-tight" style={{ color: 'var(--color-text-secondary)' }}>

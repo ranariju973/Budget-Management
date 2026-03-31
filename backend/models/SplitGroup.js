@@ -91,7 +91,6 @@ splitGroupSchema.methods.isAdmin = function (userId) {
 
 // Indexes for fast lookups
 splitGroupSchema.index({ 'members.userId': 1 });
-splitGroupSchema.index({ inviteToken: 1 });
 splitGroupSchema.index({ createdBy: 1 });
 
 // Never expose __v

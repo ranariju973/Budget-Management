@@ -1,4 +1,5 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/layout/Sidebar';
 import Navbar from '../components/layout/Navbar';
 import BottomNav from '../components/layout/BottomNav';
@@ -10,6 +11,7 @@ import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
 import MonthNavigator from '../components/dashboard/MonthNavigator';
 import SearchResults from '../components/search/SearchResults';
+import SplitGroupSection from '../components/dashboard/SplitGroupSection';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import useExpenseReminder from '../hooks/useExpenseReminder';
 import { getCurrentMonthYear } from '../utils/helpers';
@@ -17,6 +19,7 @@ import { getCurrentMonthYear } from '../utils/helpers';
 const Dashboard = () => {
   // Daily 10 PM browser notification — "Have you added your expenses?"
   useExpenseReminder();
+  const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [refreshKey, setRefreshKey] = useState(0);
 
@@ -25,6 +28,15 @@ const Dashboard = () => {
   const [year, setYear] = useState(current.year);
 
   const isCurrentMonth = month === current.month && year === current.year;
+
+  // Redirect to join page if there's a pending invite from before login
+  useEffect(() => {
+    const pendingInvite = sessionStorage.getItem('pendingInvite');
+    if (pendingInvite) {
+      sessionStorage.removeItem('pendingInvite');
+      navigate(`/join/${pendingInvite}`);
+    }
+  }, [navigate]);
 
   const handleMonthChange = useCallback((m, y) => {
     setMonth(m);
@@ -43,6 +55,8 @@ const Dashboard = () => {
     switch (activeSection) {
       case 'search':
         return <SearchResults onClose={goToDashboard} />;
+      case 'split':
+        return <SplitGroupSection />;
       case 'expenses':
         return <ExpenseSection {...sectionProps} />;
       case 'borrowing':

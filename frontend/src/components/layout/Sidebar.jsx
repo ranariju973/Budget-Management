@@ -11,6 +11,7 @@ import {
   FiX,
   FiPieChart,
   FiSearch,
+  FiUsers,
 } from 'react-icons/fi';
 
 const navItems = [
@@ -20,6 +21,7 @@ const navItems = [
   { label: 'Borrowing', icon: FiArrowDownLeft, section: 'borrowing' },
   { label: 'Lending', icon: FiArrowUpRight, section: 'lending' },
   { label: 'Analytics', icon: FiPieChart, section: 'charts' },
+  { label: 'Split', icon: FiUsers, section: 'split' },
 ];
 
 const Sidebar = ({ activeSection, setActiveSection }) => {

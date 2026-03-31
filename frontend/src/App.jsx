@@ -4,6 +4,7 @@ import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import JoinGroup from './pages/JoinGroup';
 import OAuthCallback from './pages/OAuthCallback';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
@@ -62,6 +63,7 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/join/:token" element={<JoinGroup />} />
 
         {/* Catch-all redirect */}
         <Route path="*" element={<Navigate to="/" replace />} />

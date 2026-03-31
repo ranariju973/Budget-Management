@@ -4,7 +4,8 @@ import {
   FiCreditCard,
   FiArrowDownLeft,
   FiArrowUpRight,
-  FiSearch
+  FiSearch,
+  FiAward,
 } from 'react-icons/fi';
 
 const navItems = [
@@ -13,6 +14,7 @@ const navItems = [
   { label: 'Expenses', icon: FiCreditCard, section: 'expenses' },
   { label: 'Borrow', icon: FiArrowDownLeft, section: 'borrowing' },
   { label: 'Lend', icon: FiArrowUpRight, section: 'lending' },
+  { label: 'Badges', icon: FiAward, section: 'achievements' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {

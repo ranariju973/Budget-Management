@@ -1,6 +1,7 @@
 const cron = require('node-cron');
 const webpush = require('web-push');
 const User = require('../models/User');
+const { evaluateAchievements } = require('./achievementEvaluator');
 
 const HINGLISH_ROASTS = [
   "Girlfriend kat ke chali gayi to kya hua? Expenses add kiye ki nahi?",
@@ -122,6 +123,24 @@ const initCronJobs = () => {
   // Schedule the notification for every time slot
   cronSchedules.forEach((timeStr) => {
     cron.schedule(timeStr, sendRoastNotifications);
+  });
+
+  // ── Daily Achievement Evaluator (runs at 00:00 IST = 18:30 UTC) ──
+  cron.schedule('30 18 * * *', async () => {
+    try {
+      console.log('[CRON] Running daily achievement evaluation...');
+      const users = await User.find({}).select('_id').lean();
+      let totalNew = 0;
+
+      for (const user of users) {
+        const newBadges = await evaluateAchievements(user._id);
+        totalNew += newBadges.length;
+      }
+
+      console.log(`[CRON] Achievement evaluation complete. ${totalNew} new badges unlocked across ${users.length} users.`);
+    } catch (error) {
+      console.error('[CRON] Error during achievement evaluation:', error);
+    }
   });
 
   console.log('Cron jobs initialized.');

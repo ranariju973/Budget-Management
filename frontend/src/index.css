@@ -4,24 +4,30 @@
 
 @theme {
   --color-surface: #ffffff;
-  --color-surface-alt: #f5f5f7; /* Apple's light gray background */
+  --color-surface-alt: #f5f5f7;
+  /* Apple's light gray background */
   --color-surface-hover: #e5e5ea;
   --color-border: #e4e4e6;
   --color-border-strong: #d1d1d6;
   --color-text: #000000;
-  --color-text-secondary: #8e8e93; /* Apple's secondary text */
+  --color-text-secondary: #8e8e93;
+  /* Apple's secondary text */
   --color-text-muted: #aeaeb2;
   --color-accent: #000000;
   --color-accent-hover: #1c1c1e;
-  --color-danger: #ff3b30; /* iOS red */
-  --color-success: #34c759; /* iOS green */
-  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1); /* Spring-like easing */
+  --color-danger: #ff3b30;
+  /* iOS red */
+  --color-success: #34c759;
+  /* iOS green */
+  --ease-smooth: cubic-bezier(0.2, 0.8, 0.2, 1);
+  /* Spring-like easing */
   --ease-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 .dark {
   --color-surface: #000000;
-  --color-surface-alt: #1c1c1e; /* iOS dark mode elevated surface */
+  --color-surface-alt: #1c1c1e;
+  /* iOS dark mode elevated surface */
   --color-surface-hover: #2c2c2e;
   --color-border: #38383a;
   --color-border-strong: #48484a;
@@ -30,8 +36,10 @@
   --color-text-muted: #636366;
   --color-accent: #ffffff;
   --color-accent-hover: #f2f2f7;
-  --color-danger: #ff453a; /* iOS dark red */
-  --color-success: #30d158; /* iOS dark green */
+  --color-danger: #ff453a;
+  /* iOS dark red */
+  --color-success: #30d158;
+  /* iOS dark green */
 }
 
 /* ── Base ── */
@@ -43,16 +51,27 @@ html {
 }
 
 body {
-  background-color: var(--color-surface-alt); /* iOS default background is not pure white on home, but gray */
+  background-color: var(--color-surface-alt);
+  /* iOS default background is not pure white on home, but gray */
   color: var(--color-text);
-  overscroll-behavior-y: none; /* iOS Safari bounce protection */
+  overscroll-behavior-y: none;
+  /* iOS Safari bounce protection */
 }
 
 /* ── Scrollbar ── */
 
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--color-border-strong); border-radius: 2px; }
+::-webkit-scrollbar {
+  width: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 2px;
+}
 
 /* ── Theme toggle transition (scoped to avoid chart.js canvas flicker) ── */
 
@@ -66,6 +85,7 @@ html.theme-transitioning * {
 input[type="number"] {
   appearance: textfield;
   -moz-appearance: textfield;
+
   &::-webkit-inner-spin-button,
   &::-webkit-outer-spin-button {
     -webkit-appearance: none;
@@ -111,26 +131,52 @@ button:focus-visible {
 /* ── Auth page animations ── */
 
 @keyframes vanishIn {
-  0%   { opacity: 0;   transform: translateY(16px) scale(0.96); }
-  60%  { opacity: 0.7; transform: translateY(-2px) scale(1.01); }
-  100% { opacity: 1;   transform: translateY(0) scale(1); }
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+
+  60% {
+    opacity: 0.7;
+    transform: translateY(-2px) scale(1.01);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 @keyframes fadeSlideUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* Respect reduced-motion preference */
 @media (prefers-reduced-motion: reduce) {
+
   .anim-vanish-in,
   .anim-fade-up {
     animation: none !important;
   }
 }
 
-.anim-vanish-in  { animation: vanishIn 0.8s var(--ease-smooth) both; will-change: transform, opacity; }
-.anim-fade-up    { animation: fadeSlideUp 0.7s var(--ease-smooth) both; will-change: transform, opacity; }
+.anim-vanish-in {
+  animation: vanishIn 0.8s var(--ease-smooth) both;
+  will-change: transform, opacity;
+}
+
+.anim-fade-up {
+  animation: fadeSlideUp 0.7s var(--ease-smooth) both;
+  will-change: transform, opacity;
+}
 
 /* ── Month Navigator ── */
 
@@ -559,7 +605,9 @@ button:focus-visible {
 }
 
 @keyframes authSpin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .auth-footer-note {
@@ -633,200 +681,5 @@ button:focus-visible {
 
   .auth-card {
     max-width: 420px;
-  }
-}
-
-/* ── Achievements / Badges ── */
-
-.badge-hero {
-  position: relative;
-  overflow: hidden;
-}
-
-.badge-check-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 10px;
-  border: 1px solid var(--color-border);
-  background: var(--color-surface-alt);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, transform 0.1s;
-  white-space: nowrap;
-  font-family: inherit;
-}
-
-.badge-check-btn:hover {
-  background-color: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-surface);
-}
-
-.badge-check-btn:active {
-  transform: scale(0.95);
-}
-
-.badge-check-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.badge-check-spinner {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid var(--color-text-muted);
-  border-top-color: transparent;
-  border-radius: 50%;
-  animation: authSpin 0.6s linear infinite;
-}
-
-/* Progress bar */
-.badge-progress-track {
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--color-surface-hover);
-  overflow: hidden;
-}
-
-.badge-progress-fill {
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--color-success), #6ee7a5);
-  transition: width 0.8s var(--ease-smooth);
-  min-width: 2px;
-}
-
-.dark .badge-progress-fill {
-  background: linear-gradient(90deg, var(--color-success), #50e090);
-}
-
-/* Badge card */
-.badge-card {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  padding: 24px 16px 20px;
-  border-radius: 20px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  transition: transform 0.2s var(--ease-smooth), box-shadow 0.2s, border-color 0.2s;
-  overflow: hidden;
-}
-
-.badge-card:hover {
-  transform: translateY(-2px);
-}
-
-/* Unlocked state */
-.badge-unlocked {
-  border-color: var(--color-success);
-  box-shadow: 0 0 0 1px var(--color-success), 0 4px 20px rgba(52, 199, 89, 0.10);
-}
-
-.badge-unlocked::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(52, 199, 89, 0.06),
-    transparent
-  );
-  animation: badgeShimmer 3s ease-in-out infinite;
-  pointer-events: none;
-}
-
-.dark .badge-unlocked {
-  box-shadow: 0 0 0 1px var(--color-success), 0 4px 24px rgba(48, 209, 88, 0.15);
-}
-
-.dark .badge-unlocked::before {
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(48, 209, 88, 0.08),
-    transparent
-  );
-}
-
-/* Locked state */
-.badge-locked {
-  opacity: 0.5;
-}
-
-.badge-locked:hover {
-  opacity: 0.65;
-}
-
-/* Emoji */
-.badge-emoji-wrap {
-  width: 52px;
-  height: 52px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 12px;
-  background: var(--color-surface-alt);
-  transition: transform 0.2s var(--ease-bounce);
-}
-
-.badge-card:hover .badge-emoji-wrap {
-  transform: scale(1.08);
-}
-
-.badge-emoji {
-  font-size: 26px;
-  line-height: 1;
-}
-
-/* Text */
-.badge-name {
-  font-size: 13px;
-  font-weight: 650;
-  color: var(--color-text);
-  margin-bottom: 4px;
-  letter-spacing: -0.2px;
-}
-
-.badge-desc {
-  font-size: 11px;
-  line-height: 1.4;
-  color: var(--color-text-muted);
-  max-width: 160px;
-}
-
-.badge-date {
-  font-size: 10px;
-  font-weight: 500;
-  color: var(--color-success);
-  margin-top: 8px;
-  letter-spacing: 0.02em;
-}
-
-@keyframes badgeShimmer {
-  0%   { left: -100%; }
-  100% { left: 200%; }
-}
-
-/* Respect reduced-motion */
-@media (prefers-reduced-motion: reduce) {
-  .badge-unlocked::before {
-    animation: none !important;
-  }
-  .badge-progress-fill {
-    transition: none !important;
   }
 }

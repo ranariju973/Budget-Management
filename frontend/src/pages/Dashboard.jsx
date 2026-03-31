@@ -10,7 +10,6 @@ import LendSection from '../components/dashboard/LendSection';
 import SpendingCharts from '../components/dashboard/SpendingCharts';
 import MonthNavigator from '../components/dashboard/MonthNavigator';
 import SearchResults from '../components/search/SearchResults';
-import AchievementsSection from '../components/dashboard/AchievementsSection';
 import ErrorBoundary from '../components/common/ErrorBoundary';
 import useExpenseReminder from '../hooks/useExpenseReminder';
 import { getCurrentMonthYear } from '../utils/helpers';
@@ -44,8 +43,6 @@ const Dashboard = () => {
     switch (activeSection) {
       case 'search':
         return <SearchResults onClose={goToDashboard} />;
-      case 'achievements':
-        return <AchievementsSection />;
       case 'expenses':
         return <ExpenseSection {...sectionProps} />;
       case 'borrowing':

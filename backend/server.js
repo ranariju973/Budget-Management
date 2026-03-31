@@ -91,7 +91,6 @@ app.use('/api/budget-goals', require('./routes/budgetGoalRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
-app.use('/api/achievements', require('./routes/achievementRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {

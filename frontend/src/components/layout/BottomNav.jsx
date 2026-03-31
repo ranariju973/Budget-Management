@@ -4,8 +4,7 @@ import {
   FiCreditCard,
   FiArrowDownLeft,
   FiArrowUpRight,
-  FiSearch,
-  FiAward,
+  FiSearch
 } from 'react-icons/fi';
 
 const navItems = [
@@ -14,14 +13,13 @@ const navItems = [
   { label: 'Expenses', icon: FiCreditCard, section: 'expenses' },
   { label: 'Borrow', icon: FiArrowDownLeft, section: 'borrowing' },
   { label: 'Lend', icon: FiArrowUpRight, section: 'lending' },
-  { label: 'Badges', icon: FiAward, section: 'achievements' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
   const { darkMode } = useTheme();
 
   return (
-    <nav 
+    <nav
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors"
       style={{
         borderTop: '1px solid var(--color-border-subtle)',

@@ -45,9 +45,9 @@ const Navbar = ({ setActiveSection }) => {
         </div>
       </header>
 
-      {/* Mobile iOS-style Dropdown Menu - MOVED OUTSIDE HEADER TO FIX BACKDROP-FILTER BUG */}
+      {/* iOS-style Dropdown Menu - MOVED OUTSIDE HEADER TO FIX BACKDROP-FILTER BUG */}
       {menuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
+        <div className="fixed inset-0 z-[100]">
           <div className="absolute inset-0" onClick={() => setMenuOpen(false)} />
 
           <div

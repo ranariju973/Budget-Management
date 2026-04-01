@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import {
@@ -12,6 +13,7 @@ import {
   FiPieChart,
   FiSearch,
   FiUsers,
+  FiChevronDown,
 } from 'react-icons/fi';
 
 const navItems = [
@@ -26,6 +28,7 @@ const navItems = [
 
 const Sidebar = ({ activeSection, setActiveSection }) => {
   const { user, logout, deleteAccount } = useAuth();
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const { darkMode, toggleTheme } = useTheme();
 
   const handleNavClick = (section) => {
@@ -114,18 +117,30 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
             <FiLogOut size={16} />
             Logout
           </button>
+          
           <div className="pt-2 text-center" style={{ marginTop: 'auto' }}>
             <button
-              onClick={() => {
-                if (window.confirm("Are you sure you want to permanently delete your account? This will erase your personal financial data but preserve shared Split Groups math.")) {
-                  deleteAccount();
-                }
-              }}
-              className="text-[11px] font-medium opacity-40 hover:opacity-100 hover:underline transition-all duration-200"
-              style={{ color: 'var(--color-danger)' }}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex items-center justify-center gap-1 mx-auto text-[11px] font-medium opacity-40 hover:opacity-100 transition-all duration-200"
+              style={{ color: 'var(--color-text)' }}
             >
-              Delete my account
+              Advanced <FiChevronDown size={12} style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </button>
+            
+            {showAdvanced && (
+              <div className="mt-2 anim-fade-up">
+                <button
+                  onClick={() => {
+                    if (window.confirm("Are you sure you want to permanently delete your account? This will erase your personal financial data but preserve shared Split Groups math.")) {
+                      deleteAccount();
+                    }
+                  }}
+                  className="w-full px-3 py-2 text-[12px] font-medium rounded-lg text-red-500 hover:bg-red-500/10 transition-colors duration-150"
+                >
+                  Delete Account
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </aside>

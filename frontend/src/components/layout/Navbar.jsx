@@ -4,7 +4,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { FiSun, FiMoon, FiLogOut, FiPieChart } from 'react-icons/fi';
 
 const Navbar = ({ setActiveSection }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const { darkMode, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -81,9 +81,21 @@ const Navbar = ({ setActiveSection }) => {
               <button
                 onClick={() => { logout(); setMenuOpen(false); }}
                 className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:bg-black/5 dark:active:bg-white/10 transition-colors"
-                style={{ color: 'var(--color-danger)', backgroundColor: 'transparent' }}
+                style={{ color: 'var(--color-text)', backgroundColor: 'transparent', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)' }}
               >
                 Logout <FiLogOut size={18} />
+              </button>
+              <button
+                onClick={() => {
+                  if (window.confirm("Are you sure you want to permanently delete your account? This will erase your personal financial data but preserve shared Split Groups math.")) {
+                    deleteAccount();
+                    setMenuOpen(false);
+                  }
+                }}
+                className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:bg-red-50 dark:active:bg-red-900/20 transition-colors"
+                style={{ color: 'var(--color-danger)', backgroundColor: 'transparent' }}
+              >
+                Delete Account
               </button>
             </div>
           </div>

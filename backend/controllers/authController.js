@@ -128,8 +128,51 @@ const getMe = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // We need to require models here to prevent circular dependency issues if not already required
+    const Income = require('../models/Income');
+    const Expense = require('../models/Expense');
+    const Borrow = require('../models/Borrow');
+    const Lend = require('../models/Lend');
+    const BudgetGoal = require('../models/BudgetGoal');
+    const SplitGroup = require('../models/SplitGroup');
+
+    // Delete personal tracking data
+    await Income.deleteMany({ userId });
+    await Expense.deleteMany({ userId });
+    await Borrow.deleteMany({ userId });
+    await Lend.deleteMany({ userId });
+    await BudgetGoal.deleteMany({ userId });
+
+    // Anonymize user in SplitGroups to preserve mathematical integrity
+    await SplitGroup.updateMany(
+      { 'members.userId': userId },
+      { 
+        $set: { 
+          'members.$[elem].name': 'Deleted User',
+          'members.$[elem].email': 'deleted@example.com'
+        } 
+      },
+      {
+        arrayFilters: [{ 'elem.userId': userId }]
+      }
+    );
+
+    // Hard delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    handleError(res, error, 'Auth Account Delete');
+  }
+};
+
 module.exports = {
   signup,
   login,
   getMe,
+  deleteAccount,
 };

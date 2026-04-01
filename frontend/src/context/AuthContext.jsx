@@ -72,8 +72,14 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    delete api.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);
+  };
+
+  const deleteAccount = async () => {
+    await api.delete('/auth/account');
+    logout();
   };
 
   return (
@@ -87,6 +93,7 @@ export const AuthProvider = ({ children }) => {
         login,
         signup,
         logout,
+        deleteAccount,
       }}
     >
       {children}

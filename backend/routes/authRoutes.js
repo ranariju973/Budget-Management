@@ -7,11 +7,13 @@ const {
   signup,
   login,
   getMe,
+  deleteAccount,
 } = require('../controllers/authController');
 
 router.post('/signup', signup);
 router.post('/login', login);
 router.get('/me', protect, getMe);
+router.delete('/account', protect, deleteAccount);
 
 // Google OAuth routes
 router.get(

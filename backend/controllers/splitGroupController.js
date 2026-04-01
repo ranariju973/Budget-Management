@@ -14,11 +14,13 @@ const { handleError } = require('../utils/errorHandler');
  */
 const calculateSettlement = (members, expenses) => {
   if (expenses.length === 0 || members.length === 0) {
-    return { totalExpense: 0, fairShare: 0, balances: [], transfers: [] };
+    return { totalExpense: 0, fairShare: 0, balances: [], transfers: [], advancedBreakdown: null };
   }
 
   const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
   const fairShare = totalExpense / members.length;
+  const memberCount = members.length;
+  const r = (n) => Math.round(n * 100) / 100;
 
   // Build a map of how much each member paid
   const paidMap = {};
@@ -45,9 +47,9 @@ const calculateSettlement = (members, expenses) => {
     return {
       userId: id,
       name: m.name,
-      paid: Math.round(paid * 100) / 100,
-      fairShare: Math.round(fairShare * 100) / 100,
-      balance: Math.round(balance * 100) / 100,
+      paid: r(paid),
+      fairShare: r(fairShare),
+      balance: r(balance),
     };
   });
 
@@ -79,7 +81,7 @@ const calculateSettlement = (members, expenses) => {
       transfers.push({
         from: { userId: payers[pi].userId, name: payers[pi].name },
         to: { userId: receivers[ri].userId, name: receivers[ri].name },
-        amount: Math.round(amount * 100) / 100,
+        amount: r(amount),
       });
     }
 
@@ -90,11 +92,68 @@ const calculateSettlement = (members, expenses) => {
     if (receivers[ri].remaining < 0.01) ri++;
   }
 
+  // ── Advanced Breakdown ──────────────────────────────────────────────
+  // Step 1: Per-expense equal share split
+  const perExpenseSplits = expenses.map((e) => {
+    const payerMember = memberMap[e.paidBy.toString()];
+    return {
+      title: e.title,
+      amount: r(e.amount),
+      paidByUserId: e.paidBy.toString(),
+      paidByName: payerMember?.name || 'Unknown',
+      perPersonShare: r(e.amount / memberCount),
+    };
+  });
+
+  // Step 2: Individual payment breakdown
+  // For each person, calculate what they owe to each other person who paid more per-expense
+  const individualBreakdown = members.map((m) => {
+    const myId = m.userId.toString();
+    const myPaidTotal = paidMap[myId] || 0;
+    const mySharePerExpense = r(myPaidTotal / memberCount); // what each person owes me
+
+    // Calculate what I owe each other person
+    const owes = [];
+    for (const other of members) {
+      const otherId = other.userId.toString();
+      if (otherId === myId) continue;
+
+      const otherPaidTotal = paidMap[otherId] || 0;
+      if (otherPaidTotal <= 0) continue;
+
+      const iOweThemPerExpense = r(otherPaidTotal / memberCount); // my share of their expense
+      const theyOweMePerExpense = mySharePerExpense; // their share of my expense
+      const netOwe = r(iOweThemPerExpense - theyOweMePerExpense);
+
+      if (netOwe > 0.01) {
+        owes.push({
+          toUserId: otherId,
+          toName: other.name,
+          iOweThemShare: iOweThemPerExpense,
+          theyOweMeShare: theyOweMePerExpense,
+          netAmount: netOwe,
+        });
+      }
+    }
+
+    return {
+      userId: myId,
+      name: m.name,
+      totalPaid: r(myPaidTotal),
+      owes,
+    };
+  });
+
   return {
-    totalExpense: Math.round(totalExpense * 100) / 100,
-    fairShare: Math.round(fairShare * 100) / 100,
+    totalExpense: r(totalExpense),
+    fairShare: r(fairShare),
     balances,
     transfers,
+    advancedBreakdown: {
+      memberCount,
+      perExpenseSplits,
+      individualBreakdown,
+    },
   };
 };
 

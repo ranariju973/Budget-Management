@@ -25,6 +25,7 @@ import {
   FiArrowRight,
   FiRefreshCw,
   FiLock,
+  FiChevronDown,
 } from 'react-icons/fi';
 
 const SplitGroupSection = () => {
@@ -59,6 +60,7 @@ const SplitGroupSection = () => {
   const [leaveId, setLeaveId] = useState(null);
   const [settleId, setSettleId] = useState(null);
   const [deleteExpenseId, setDeleteExpenseId] = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   // ─── Load groups ────────────────────────────────────────────────────
   const fetchGroups = useCallback(async () => {
@@ -223,6 +225,7 @@ const SplitGroupSection = () => {
     setGroupData(null);
     setInviteLink('');
     setShowExpenseForm(false);
+    setShowAdvanced(false);
     fetchGroups();
   };
 
@@ -539,6 +542,175 @@ const SplitGroupSection = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Advanced Calculate Toggle */}
+            {settlement.advancedBreakdown && (
+              <div style={{ borderTop: '1px solid var(--color-border-subtle)' }}>
+                <button
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="w-full flex items-center justify-between px-6 py-3.5 transition-colors tap-effect"
+                  style={{ color: 'var(--color-accent)' }}
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = 'var(--color-surface-alt)'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
+                >
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: '15px' }}>🧮</span>
+                    <span className="text-[13px] font-semibold">Advanced Calculation</span>
+                  </div>
+                  <FiChevronDown
+                    size={16}
+                    style={{
+                      transform: showAdvanced ? 'rotate(180deg)' : 'rotate(0deg)',
+                      transition: 'transform 0.3s ease',
+                    }}
+                  />
+                </button>
+
+                {/* Expanded Advanced Breakdown */}
+                {showAdvanced && (
+                  <div
+                    className="px-6 pb-5 space-y-5"
+                    style={{
+                      animation: 'slideDown 0.3s ease',
+                    }}
+                  >
+                    {/* Step 1: Equal Share Calculation */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[13px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}>Step 1</span>
+                        <span className="text-[13px] font-semibold" style={{ color: 'var(--color-text)' }}>Equal Share Calculation</span>
+                      </div>
+                      <p className="text-[12px] mb-3" style={{ color: 'var(--color-text-muted)' }}>
+                        Each expense is divided equally among {settlement.advancedBreakdown.memberCount} members:
+                      </p>
+                      <div className="space-y-2">
+                        {settlement.advancedBreakdown.perExpenseSplits.map((exp, idx) => (
+                          <div
+                            key={idx}
+                            className="flex items-center justify-between p-3 rounded-xl"
+                            style={{ backgroundColor: 'var(--color-surface-alt)' }}
+                          >
+                            <div className="min-w-0 flex-1">
+                              <div className="flex items-center gap-2">
+                                <div className="split-avatar-sm" style={{ backgroundColor: 'var(--color-text-muted)', color: 'var(--color-surface)', flexShrink: 0 }}>
+                                  {exp.paidByName?.charAt(0)?.toUpperCase()}
+                                </div>
+                                <div className="min-w-0">
+                                  <p className="text-[13px] font-medium truncate" style={{ color: 'var(--color-text)' }}>
+                                    {exp.paidByUserId === user?._id ? 'You' : exp.paidByName} — {exp.title}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="text-right ml-3 flex-shrink-0">
+                              <p className="text-[14px] font-bold tabular-nums" style={{ color: 'var(--color-text)' }}>
+                                {formatCurrency(exp.amount)}
+                              </p>
+                              <p className="text-[11px] tabular-nums" style={{ color: 'var(--color-text-muted)' }}>
+                                ÷ {settlement.advancedBreakdown.memberCount} = <span style={{ color: 'var(--color-accent)', fontWeight: 600 }}>{formatCurrency(exp.perPersonShare)}</span> /person
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Divider */}
+                    <div style={{ height: '1px', backgroundColor: 'var(--color-border-subtle)' }} />
+
+                    {/* Step 2: Individual Payment Breakdown */}
+                    <div>
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[13px] font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: 'var(--color-accent)', color: '#fff' }}>Step 2</span>
+                        <span className="text-[13px] font-semibold" style={{ color: 'var(--color-text)' }}>Individual Payment Breakdown</span>
+                      </div>
+                      <p className="text-[12px] mb-3" style={{ color: 'var(--color-text-muted)' }}>
+                        How much each person owes to others based on their share:
+                      </p>
+                      <div className="space-y-3">
+                        {settlement.advancedBreakdown.individualBreakdown.map((person) => {
+                          const isCurrentUser = person.userId === user?._id;
+                          const displayName = isCurrentUser ? 'You' : person.name;
+                          const hasOwes = person.owes.length > 0;
+
+                          return (
+                            <div
+                              key={person.userId}
+                              className="rounded-xl overflow-hidden"
+                              style={{
+                                border: '1px solid var(--color-border-subtle)',
+                                backgroundColor: 'var(--color-surface)',
+                              }}
+                            >
+                              {/* Person header */}
+                              <div
+                                className="flex items-center justify-between px-4 py-3"
+                                style={{ backgroundColor: 'var(--color-surface-alt)' }}
+                              >
+                                <div className="flex items-center gap-2">
+                                  <span style={{ fontSize: '14px' }}>👤</span>
+                                  <span className="text-[13px] font-bold" style={{ color: 'var(--color-text)' }}>
+                                    {displayName}'s Payments
+                                  </span>
+                                </div>
+                                <span className="text-[11px] font-medium px-2 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-surface-hover)', color: 'var(--color-text-secondary)' }}>
+                                  Paid {formatCurrency(person.totalPaid)}
+                                </span>
+                              </div>
+
+                              {/* Owes list */}
+                              <div className="px-4 py-3">
+                                {hasOwes ? (
+                                  <div className="space-y-2">
+                                    {person.owes.map((owe, idx) => {
+                                      const toName = owe.toUserId === user?._id ? 'You' : owe.toName;
+                                      return (
+                                        <div key={idx}>
+                                          <p className="text-[12px] mb-1" style={{ color: 'var(--color-text-muted)' }}>
+                                            To {toName} → {formatCurrency(owe.iOweThemShare)} − {formatCurrency(owe.theyOweMeShare)} = <span style={{ color: 'var(--color-danger)', fontWeight: 700 }}>{formatCurrency(owe.netAmount)}</span>
+                                          </p>
+                                        </div>
+                                      );
+                                    })}
+                                    {/* Summary */}
+                                    <div
+                                      className="mt-2 pt-2 space-y-1"
+                                      style={{ borderTop: '1px dashed var(--color-border-subtle)' }}
+                                    >
+                                      <p className="text-[12px] font-semibold" style={{ color: 'var(--color-text-secondary)' }}>
+                                        👉 So, {displayName} pay{isCurrentUser ? '' : 's'}:
+                                      </p>
+                                      {person.owes.map((owe, idx) => {
+                                        const toName = owe.toUserId === user?._id ? 'You' : owe.toName;
+                                        return (
+                                          <div key={idx} className="flex items-center gap-2 pl-4">
+                                            <FiArrowRight size={11} style={{ color: 'var(--color-danger)', flexShrink: 0 }} />
+                                            <span className="text-[12px] font-medium" style={{ color: 'var(--color-text)' }}>
+                                              <span style={{ color: 'var(--color-danger)', fontWeight: 700 }}>{formatCurrency(owe.netAmount)}</span> to {toName}
+                                            </span>
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-2">
+                                    <span style={{ fontSize: '14px' }}>✅</span>
+                                    <p className="text-[12px] font-medium" style={{ color: 'var(--color-success)' }}>
+                                      {displayName} {isCurrentUser ? 'don\'t' : 'doesn\'t'} need to pay anyone — already paid the highest amount!
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>

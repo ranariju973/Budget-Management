@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
-import { FiSun, FiMoon, FiLogOut, FiPieChart } from 'react-icons/fi';
+import UserProfileSidebar from './UserProfileSidebar';
 
 const Navbar = ({ setActiveSection }) => {
   const { user, logout } = useAuth();
@@ -45,50 +45,12 @@ const Navbar = ({ setActiveSection }) => {
         </div>
       </header>
 
-      {/* Mobile iOS-style Dropdown Menu - MOVED OUTSIDE HEADER TO FIX BACKDROP-FILTER BUG */}
-      {menuOpen && (
-        <div className="fixed inset-0 z-[100] lg:hidden">
-          <div className="absolute inset-0" onClick={() => setMenuOpen(false)} />
-          
-          <div 
-            className="absolute top-[68px] right-4 w-[240px] rounded-[16px] shadow-2xl overflow-hidden"
-            style={{
-              backgroundColor: darkMode ? 'rgba(30,30,30,0.65)' : 'rgba(250,250,250,0.65)',
-              border: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)',
-              backdropFilter: 'blur(40px) saturate(200%)',
-              WebkitBackdropFilter: 'blur(40px) saturate(200%)',
-            }}
-          >
-            <div className="px-4 py-3" style={{ borderBottom: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)' }}>
-              <p className="font-semibold text-[13px] truncate" style={{ color: 'var(--color-text)' }}>{user?.name}</p>
-              <p className="text-[12px] truncate" style={{ color: 'var(--color-text-muted)' }}>{user?.email}</p>
-            </div>
-            <div className="flex flex-col">
-              <button 
-                onClick={() => { if(setActiveSection) setActiveSection('charts'); setMenuOpen(false); }} 
-                className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:bg-black/5 dark:active:bg-white/10 transition-colors" 
-                style={{ color: 'var(--color-text)', backgroundColor: 'transparent', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)' }}
-              >
-                Spend Analysis <FiPieChart size={18} style={{ color: 'var(--color-text-secondary)' }} />
-              </button>
-              <button 
-                onClick={() => { toggleTheme(); setMenuOpen(false); }} 
-                className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:bg-black/5 dark:active:bg-white/10 transition-colors" 
-                style={{ color: 'var(--color-text)', backgroundColor: 'transparent', borderBottom: darkMode ? '1px solid rgba(255,255,255,0.15)' : '1px solid rgba(0,0,0,0.08)' }}
-              >
-                {darkMode ? 'Light Mode' : 'Dark Mode'} {darkMode ? <FiSun size={18} style={{ color: 'var(--color-text-secondary)' }} /> : <FiMoon size={18} style={{ color: 'var(--color-text-secondary)' }} />}
-              </button>
-              <button 
-                onClick={() => { logout(); setMenuOpen(false); }} 
-                className="w-full flex items-center justify-between px-4 py-3.5 text-[15px] font-medium active:bg-black/5 dark:active:bg-white/10 transition-colors" 
-                style={{ color: 'var(--color-danger)', backgroundColor: 'transparent' }}
-              >
-                Logout <FiLogOut size={18} />
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* New Sliding Sidebar */}
+      <UserProfileSidebar 
+        isOpen={menuOpen} 
+        onClose={() => setMenuOpen(false)} 
+        setActiveSection={setActiveSection}
+      />
     </>
   );
 };

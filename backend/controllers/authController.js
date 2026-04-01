@@ -128,8 +128,89 @@ const getMe = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Update user profile name
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+const updateProfile = async (req, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || !name.trim() || name.trim().length > 50) {
+      return res.status(400).json({ message: 'Name is required (max 50 characters)' });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.name = name.trim();
+    await user.save();
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      message: 'Profile updated successfully',
+    });
+  } catch (error) {
+    handleError(res, error, 'Auth Profile Update');
+  }
+};
+
+/**
+ * @desc    Delete user account and anonymize in groups
+ * @route   DELETE /api/auth/account
+ * @access  Private
+ */
+const deleteAccount = async (req, res) => {
+  try {
+    const userId = req.user._id;
+
+    // We need to require models here to prevent circular dependency issues if not already required
+    const Income = require('../models/Income');
+    const Expense = require('../models/Expense');
+    const Borrow = require('../models/Borrow');
+    const Lend = require('../models/Lend');
+    const BudgetGoal = require('../models/BudgetGoal');
+    const SplitGroup = require('../models/SplitGroup');
+
+    // Delete personal tracking data
+    await Income.deleteMany({ userId });
+    await Expense.deleteMany({ userId });
+    await Borrow.deleteMany({ userId });
+    await Lend.deleteMany({ userId });
+    await BudgetGoal.deleteMany({ userId });
+
+    // Anonymize user in SplitGroups to preserve mathematical integrity
+    await SplitGroup.updateMany(
+      { 'members.userId': userId },
+      { 
+        $set: { 
+          'members.$[elem].name': 'Deleted User',
+          'members.$[elem].email': 'deleted@example.com'
+        } 
+      },
+      {
+        arrayFilters: [{ 'elem.userId': userId }]
+      }
+    );
+
+    // Hard delete the user
+    await User.findByIdAndDelete(userId);
+
+    res.json({ message: 'Account deleted successfully' });
+  } catch (error) {
+    handleError(res, error, 'Auth Account Delete');
+  }
+};
+
 module.exports = {
   signup,
   login,
   getMe,
+  updateProfile,
+  deleteAccount,
 };

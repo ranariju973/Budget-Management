@@ -25,7 +25,7 @@ const navItems = [
 ];
 
 const Sidebar = ({ activeSection, setActiveSection }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, deleteAccount } = useAuth();
   const { darkMode, toggleTheme } = useTheme();
 
   const handleNavClick = (section) => {
@@ -114,6 +114,19 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
             <FiLogOut size={16} />
             Logout
           </button>
+          <div className="pt-2 text-center" style={{ marginTop: 'auto' }}>
+            <button
+              onClick={() => {
+                if (window.confirm("Are you sure you want to permanently delete your account? This will erase your personal financial data but preserve shared Split Groups math.")) {
+                  deleteAccount();
+                }
+              }}
+              className="text-[11px] font-medium opacity-40 hover:opacity-100 hover:underline transition-all duration-200"
+              style={{ color: 'var(--color-danger)' }}
+            >
+              Delete my account
+            </button>
+          </div>
         </div>
       </aside>
     </>

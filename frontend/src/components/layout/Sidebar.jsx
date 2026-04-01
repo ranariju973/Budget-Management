@@ -118,26 +118,27 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
             Logout
           </button>
           
-          <div className="pt-2 text-center" style={{ marginTop: 'auto' }}>
+          <div className="pt-2 px-3" style={{ marginTop: 'auto' }}>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex gap-1 mx-auto text-[11px] font-medium opacity-40 hover:opacity-100 transition-all duration-200"
-              style={{ color: 'var(--color-text)' }}
+              className="flex items-center gap-2 text-[12px] font-medium opacity-50 hover:opacity-100 transition-all duration-200 w-full"
+              style={{ color: 'var(--color-danger)' }}
             >
-              Delete Account <FiChevronDown size={12} style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+              <FiChevronDown size={14} style={{ transform: showAdvanced ? 'rotate(180deg)' : 'rotate(-90deg)', transition: 'transform 0.2s' }} />
+              Delete Account
             </button>
             
             {showAdvanced && (
-              <div className="mt-2 anim-fade-up">
+              <div className="mt-2 anim-fade-up pb-2">
                 <button
                   onClick={() => {
                     if (window.confirm("Are you sure you want to permanently delete your account? This will erase your personal financial data but preserve shared Split Groups math.")) {
                       deleteAccount();
                     }
                   }}
-                  className="w-full px-3 py-2 text-[12px] font-medium rounded-lg text-red-500 hover:bg-red-500/10 transition-colors duration-150"
+                  className="w-full text-left pl-6 pr-3 py-1.5 text-[11px] font-medium rounded-lg text-red-500 hover:bg-red-500/10 transition-colors duration-150"
                 >
-                  Delete Account
+                  Confirm Deletion
                 </button>
               </div>
             )}

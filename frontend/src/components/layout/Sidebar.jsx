@@ -121,7 +121,7 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
           <div className="pt-2 text-center" style={{ marginTop: 'auto' }}>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="flex justify-center gap-1 mx-auto text-[11px] font-medium opacity-40 hover:opacity-100 transition-all duration-200"
+              className="flex gap-1 mx-auto text-[11px] font-medium opacity-40 hover:opacity-100 transition-all duration-200"
               style={{ color: 'var(--color-text)' }}
             >
               Delete Account <FiChevronDown size={12} style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />

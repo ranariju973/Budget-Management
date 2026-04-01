@@ -1,56 +1,58 @@
-const mongoose = require('mongoose');
-const Borrow = require('../models/Borrow');
-const Expense = require('../models/Expense');
-const createCRUD = require('../utils/crudFactory');
+const { supabaseAdmin } = require('../config/supabase');
+const { createSupabaseCRUD, mapToApi } = require('../utils/supabaseCrudFactory');
 const { handleError } = require('../utils/errorHandler');
 
 /**
- * Borrow CRUD — generated via factory pattern
- * Uses O(1) Set-based field validation, O(log n) B-tree indexed queries
+ * Borrow CRUD — generated via factory pattern for Supabase
  */
-const { getAll, create, update, remove } = createCRUD(Borrow, 'Borrow record', {
+const { getAll, create, update, remove } = createSupabaseCRUD('borrows', 'Borrow record', {
   fields: ['personName', 'amount', 'date', 'reason'],
   requiredFields: ['personName', 'amount', 'date'],
+  fieldMap: { personName: 'person_name', isPaid: 'is_paid', paidDate: 'paid_date' },
 });
 
 /**
- * @desc    Mark a borrow as paid — creates an expense and removes from active borrows
+ * @desc    Mark a borrow as paid — creates an expense and updates status
  * @route   PATCH /api/borrows/:id/mark-paid
  * @access  Private
  */
 const markBorrowAsPaid = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid ID format' });
-    }
+    // Get borrow record
+    const { data: borrow, error: fetchError } = await supabaseAdmin
+      .from('borrows')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single();
 
-    const borrow = await Borrow.findOne({
-      _id: req.params.id,
-      userId: req.user._id,
-    });
-
-    if (!borrow) {
+    if (fetchError || !borrow) {
       return res.status(404).json({ message: 'Borrow record not found' });
     }
 
-    if (borrow.isPaid) {
+    if (borrow.is_paid) {
       return res.status(400).json({ message: 'Borrow is already marked as paid' });
     }
 
     // Create an expense entry for the repaid borrow
-    await Expense.create({
-      userId: req.user._id,
-      title: `Borrow repaid: ${borrow.personName}`,
+    await supabaseAdmin.from('expenses').insert({
+      user_id: req.user.id,
+      title: `Borrow repaid: ${borrow.person_name}`,
       amount: borrow.amount,
-      date: new Date(),
+      date: new Date().toISOString().split('T')[0],
     });
 
     // Mark borrow as paid
-    borrow.isPaid = true;
-    borrow.paidDate = new Date();
-    await borrow.save();
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from('borrows')
+      .update({ is_paid: true, paid_date: new Date().toISOString().split('T')[0] })
+      .eq('id', req.params.id)
+      .select()
+      .single();
 
-    res.json(borrow);
+    if (updateError) throw updateError;
+
+    res.json(mapToApi(updated, { personName: 'person_name', isPaid: 'is_paid', paidDate: 'paid_date' }));
   } catch (error) {
     handleError(res, error, 'Borrow record');
   }

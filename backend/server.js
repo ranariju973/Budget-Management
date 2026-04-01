@@ -3,22 +3,18 @@ const cors = require('cors');
 const helmet = require('helmet');
 const hpp = require('hpp');
 const compression = require('compression');
-const mongoose = require('mongoose');
 const dotenv = require('dotenv');
-const passport = require('passport'); // Add passport
-const connectDB = require('./config/db');
+const passport = require('passport');
+
+// Load environment variables FIRST before any other imports that might need them
+dotenv.config();
+
 const { apiLimiter, authLimiter } = require('./middleware/rateLimiter');
 const { sanitizeInput } = require('./middleware/sanitize');
 const { initCronJobs } = require('./services/cronJobs');
 
-// Load environment variables
-dotenv.config();
-
 // Initialize passport config AFTER dotenv.config()
 require('./config/passport');
-
-// Connect to MongoDB
-connectDB();
 
 // Initialize Cron Jobs
 initCronJobs();
@@ -117,18 +113,14 @@ app.use((err, req, res, _next) => {
 const PORT = process.env.PORT || 5000;
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT} [${process.env.NODE_ENV || 'development'}]`);
+  console.log('Database: Supabase (PostgreSQL)');
 });
 
-// Graceful shutdown — drain connections + close DB
+// Graceful shutdown
 const gracefulShutdown = (signal) => {
   console.log(`${signal} received. Shutting down gracefully...`);
-  server.close(async () => {
-    try {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed.');
-    } catch (err) {
-      console.error('Error closing MongoDB:', err);
-    }
+  server.close(() => {
+    console.log('Server closed.');
     process.exit(0);
   });
   // Force kill after 10s if connections don't drain
@@ -137,7 +129,3 @@ const gracefulShutdown = (signal) => {
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-
-// MongoDB connection events for observability
-mongoose.connection.on('error', (err) => console.error('MongoDB error:', err));
-mongoose.connection.on('disconnected', () => console.warn('MongoDB disconnected'));

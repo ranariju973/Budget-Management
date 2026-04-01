@@ -1,34 +1,46 @@
-const mongoose = require('mongoose');
-const SplitGroup = require('../models/SplitGroup');
+const { supabaseAdmin } = require('../config/supabase');
 
 /**
  * Group Membership Middleware
  * Verifies that req.user is a member of the group specified by :groupId.
- * Attaches req.group and req.memberRole for downstream use.
+ * Attaches req.group, req.groupMembers, and req.memberRole for downstream use.
  */
 const requireGroupMember = async (req, res, next) => {
   try {
     const { groupId } = req.params;
 
-    if (!groupId || !mongoose.Types.ObjectId.isValid(groupId)) {
+    if (!groupId) {
       return res.status(400).json({ message: 'Invalid group ID' });
     }
 
-    const group = await SplitGroup.findById(groupId);
+    // Get group
+    const { data: group, error: groupError } = await supabaseAdmin
+      .from('split_groups')
+      .select('*')
+      .eq('id', groupId)
+      .single();
 
-    if (!group) {
+    if (groupError || !group) {
       return res.status(404).json({ message: 'Group not found' });
     }
 
-    const member = group.members.find(
-      (m) => m.userId.toString() === req.user._id.toString()
-    );
+    // Get members
+    const { data: members, error: membersError } = await supabaseAdmin
+      .from('split_group_members')
+      .select('*')
+      .eq('group_id', groupId);
+
+    if (membersError) throw membersError;
+
+    // Check if user is a member
+    const member = (members || []).find((m) => m.user_id === req.user.id);
 
     if (!member) {
       return res.status(403).json({ message: 'You are not a member of this group' });
     }
 
     req.group = group;
+    req.groupMembers = members || [];
     req.memberRole = member.role;
 
     return next();

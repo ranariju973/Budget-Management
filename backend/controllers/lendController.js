@@ -1,15 +1,14 @@
-const mongoose = require('mongoose');
-const Lend = require('../models/Lend');
-const createCRUD = require('../utils/crudFactory');
+const { supabaseAdmin } = require('../config/supabase');
+const { createSupabaseCRUD, mapToApi } = require('../utils/supabaseCrudFactory');
 const { handleError } = require('../utils/errorHandler');
 
 /**
- * Lend CRUD — generated via factory pattern
- * Uses O(1) Set-based field validation, O(log n) B-tree indexed queries
+ * Lend CRUD — generated via factory pattern for Supabase
  */
-const { getAll, create, update, remove } = createCRUD(Lend, 'Lend record', {
+const { getAll, create, update, remove } = createSupabaseCRUD('lends', 'Lend record', {
   fields: ['personName', 'amount', 'date', 'reason'],
   requiredFields: ['personName', 'amount', 'date'],
+  fieldMap: { personName: 'person_name', isPaid: 'is_paid', paidDate: 'paid_date' },
 });
 
 /**
@@ -19,29 +18,33 @@ const { getAll, create, update, remove } = createCRUD(Lend, 'Lend record', {
  */
 const markLendAsPaid = async (req, res) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ message: 'Invalid ID format' });
-    }
+    // Get lend record
+    const { data: lend, error: fetchError } = await supabaseAdmin
+      .from('lends')
+      .select('*')
+      .eq('id', req.params.id)
+      .eq('user_id', req.user.id)
+      .single();
 
-    const lend = await Lend.findOne({
-      _id: req.params.id,
-      userId: req.user._id,
-    });
-
-    if (!lend) {
+    if (fetchError || !lend) {
       return res.status(404).json({ message: 'Lend record not found' });
     }
 
-    if (lend.isPaid) {
+    if (lend.is_paid) {
       return res.status(400).json({ message: 'Lend is already marked as paid' });
     }
 
-    // Mark lend as paid — balance credit is handled by dashboard/summary formula
-    lend.isPaid = true;
-    lend.paidDate = new Date();
-    await lend.save();
+    // Mark lend as paid
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from('lends')
+      .update({ is_paid: true, paid_date: new Date().toISOString().split('T')[0] })
+      .eq('id', req.params.id)
+      .select()
+      .single();
 
-    res.json(lend);
+    if (updateError) throw updateError;
+
+    res.json(mapToApi(updated, { personName: 'person_name', isPaid: 'is_paid', paidDate: 'paid_date' }));
   } catch (error) {
     handleError(res, error, 'Lend record');
   }

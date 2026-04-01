@@ -1,13 +1,12 @@
-const Expense = require('../models/Expense');
-const createCRUD = require('../utils/crudFactory');
+const { createSupabaseCRUD } = require('../utils/supabaseCrudFactory');
 
 /**
- * Expense CRUD — generated via factory pattern
- * Uses O(1) Set-based field validation, O(log n) B-tree indexed queries
+ * Expense CRUD — generated via factory pattern for Supabase
  */
-const { getAll, create, update, remove } = createCRUD(Expense, 'Expense', {
+const { getAll, create, update, remove } = createSupabaseCRUD('expenses', 'Expense', {
   fields: ['title', 'amount', 'date'],
   requiredFields: ['title', 'amount', 'date'],
+  fieldMap: {},
 });
 
 module.exports = {

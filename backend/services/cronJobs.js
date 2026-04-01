@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const webpush = require('web-push');
-const User = require('../models/User');
+const { supabaseAdmin } = require('../config/supabase');
 
 const HINGLISH_ROASTS = [
   "Girlfriend kat ke chali gayi to kya hua? Expenses add kiye ki nahi?",
@@ -77,9 +77,20 @@ const initCronJobs = () => {
 
   const sendRoastNotifications = async () => {
     try {
-      // Find all users who have at least one push subscription
-      const users = await User.find({ pushSubscriptions: { $not: { $size: 0 } } });
-      if (!users.length) return;
+      // Find all users who have at least one push subscription using Supabase
+      const { data: users, error } = await supabaseAdmin
+        .from('users')
+        .select('id, email, push_subscriptions')
+        .not('push_subscriptions', 'is', null);
+
+      if (error) throw error;
+
+      // Filter users with valid push subscriptions
+      const usersWithSubs = (users || []).filter(
+        (u) => u.push_subscriptions && u.push_subscriptions.length > 0
+      );
+
+      if (!usersWithSubs.length) return;
 
       // Pick a random roast message for this blast
       const randomRoast = HINGLISH_ROASTS[Math.floor(Math.random() * HINGLISH_ROASTS.length)];
@@ -87,7 +98,7 @@ const initCronJobs = () => {
 
       let pushCount = 0;
 
-      for (const user of users) {
+      for (const user of usersWithSubs) {
         const payload = JSON.stringify({
           title: 'Aukaat me reh thoda! 💸',
           body: randomRoast,
@@ -96,16 +107,21 @@ const initCronJobs = () => {
         });
 
         // Send push message to every subscription registered for this user
-        for (const subscription of user.pushSubscriptions) {
+        for (const subscription of user.push_subscriptions) {
           try {
             await webpush.sendNotification(subscription, payload);
             pushCount++;
           } catch (error) {
-            // Error code 410 or 404 indicates the subscription is no longer valid (e.g. user revoked permission)
+            // Error code 410 or 404 indicates the subscription is no longer valid
             if (error.statusCode === 410 || error.statusCode === 404) {
               console.log(`[CRON] Removing invalid subscription for user ${user.email}`);
-              user.pushSubscriptions = user.pushSubscriptions.filter(s => s.endpoint !== subscription.endpoint);
-              await user.save();
+              const updatedSubs = user.push_subscriptions.filter(
+                (s) => s.endpoint !== subscription.endpoint
+              );
+              await supabaseAdmin
+                .from('users')
+                .update({ push_subscriptions: updatedSubs })
+                .eq('id', user.id);
             } else {
               console.error(`[CRON] Failed to send push to ${user.email}:`, error);
             }

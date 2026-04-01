@@ -1,8 +1,7 @@
-const mongoose = require('mongoose');
-const SplitGroup = require('../models/SplitGroup');
-const SplitExpense = require('../models/SplitExpense');
-const User = require('../models/User');
+const crypto = require('crypto');
+const { supabaseAdmin } = require('../config/supabase');
 const { handleError } = require('../utils/errorHandler');
+const { mapToApi } = require('../utils/supabaseCrudFactory');
 
 /**
  * Settlement Algorithm — calculates who owes whom
@@ -17,7 +16,7 @@ const calculateSettlement = (members, expenses) => {
     return { totalExpense: 0, fairShare: 0, balances: [], transfers: [], advancedBreakdown: null };
   }
 
-  const totalExpense = expenses.reduce((sum, e) => sum + e.amount, 0);
+  const totalExpense = expenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
   const fairShare = totalExpense / members.length;
   const memberCount = members.length;
   const r = (n) => Math.round(n * 100) / 100;
@@ -25,23 +24,23 @@ const calculateSettlement = (members, expenses) => {
   // Build a map of how much each member paid
   const paidMap = {};
   for (const m of members) {
-    paidMap[m.userId.toString()] = 0;
+    paidMap[m.user_id] = 0;
   }
   for (const e of expenses) {
-    const key = e.paidBy.toString();
+    const key = e.paid_by;
     if (paidMap[key] !== undefined) {
-      paidMap[key] += e.amount;
+      paidMap[key] += parseFloat(e.amount);
     }
   }
 
   // Calculate balances
   const memberMap = {};
   for (const m of members) {
-    memberMap[m.userId.toString()] = m;
+    memberMap[m.user_id] = m;
   }
 
   const balances = members.map((m) => {
-    const id = m.userId.toString();
+    const id = m.user_id;
     const paid = paidMap[id] || 0;
     const balance = paid - fairShare;
     return {
@@ -95,34 +94,32 @@ const calculateSettlement = (members, expenses) => {
   // ── Advanced Breakdown ──────────────────────────────────────────────
   // Step 1: Per-expense equal share split
   const perExpenseSplits = expenses.map((e) => {
-    const payerMember = memberMap[e.paidBy.toString()];
+    const payerMember = memberMap[e.paid_by];
     return {
       title: e.title,
-      amount: r(e.amount),
-      paidByUserId: e.paidBy.toString(),
+      amount: r(parseFloat(e.amount)),
+      paidByUserId: e.paid_by,
       paidByName: payerMember?.name || 'Unknown',
-      perPersonShare: r(e.amount / memberCount),
+      perPersonShare: r(parseFloat(e.amount) / memberCount),
     };
   });
 
   // Step 2: Individual payment breakdown
-  // For each person, calculate what they owe to each other person who paid more per-expense
   const individualBreakdown = members.map((m) => {
-    const myId = m.userId.toString();
+    const myId = m.user_id;
     const myPaidTotal = paidMap[myId] || 0;
-    const mySharePerExpense = r(myPaidTotal / memberCount); // what each person owes me
+    const mySharePerExpense = r(myPaidTotal / memberCount);
 
-    // Calculate what I owe each other person
     const owes = [];
     for (const other of members) {
-      const otherId = other.userId.toString();
+      const otherId = other.user_id;
       if (otherId === myId) continue;
 
       const otherPaidTotal = paidMap[otherId] || 0;
       if (otherPaidTotal <= 0) continue;
 
-      const iOweThemPerExpense = r(otherPaidTotal / memberCount); // my share of their expense
-      const theyOweMePerExpense = mySharePerExpense; // their share of my expense
+      const iOweThemPerExpense = r(otherPaidTotal / memberCount);
+      const theyOweMePerExpense = mySharePerExpense;
       const netOwe = r(iOweThemPerExpense - theyOweMePerExpense);
 
       if (netOwe > 0.01) {
@@ -157,37 +154,70 @@ const calculateSettlement = (members, expenses) => {
   };
 };
 
+// Helper to map group data to API format
+const mapGroupToApi = (group, members) => ({
+  _id: group.id,
+  id: group.id,
+  name: group.name,
+  createdBy: group.created_by,
+  isSettled: group.is_settled,
+  settledAt: group.settled_at,
+  inviteToken: group.invite_token,
+  inviteTokenExpiresAt: group.invite_token_expires_at,
+  createdAt: group.created_at,
+  updatedAt: group.updated_at,
+  members: members.map((m) => ({
+    userId: m.user_id,
+    name: m.name,
+    email: m.email,
+    role: m.role,
+    joinedAt: m.joined_at,
+  })),
+});
+
 // ─── GET /api/split-groups ────────────────────────────────────────────
 const getMyGroups = async (req, res) => {
   try {
-    const groups = await SplitGroup.find({
-      'members.userId': req.user._id,
-    })
-      .sort({ updatedAt: -1 })
-      .lean();
+    // Get groups where user is a member
+    const { data: memberOf, error: memberError } = await supabaseAdmin
+      .from('split_group_members')
+      .select('group_id')
+      .eq('user_id', req.user.id);
 
-    // Attach expense count and total for each group
-    const groupIds = groups.map((g) => g._id);
-    const expenseAgg = await SplitExpense.aggregate([
-      { $match: { groupId: { $in: groupIds } } },
-      {
-        $group: {
-          _id: '$groupId',
-          total: { $sum: '$amount' },
-          count: { $sum: 1 },
-        },
-      },
-    ]);
+    if (memberError) throw memberError;
 
-    const expenseMap = {};
-    for (const e of expenseAgg) {
-      expenseMap[e._id.toString()] = { total: e.total, count: e.count };
+    if (!memberOf || memberOf.length === 0) {
+      return res.json([]);
     }
 
-    const result = groups.map((g) => ({
-      ...g,
-      expenseTotal: expenseMap[g._id.toString()]?.total || 0,
-      expenseCount: expenseMap[g._id.toString()]?.count || 0,
+    const groupIds = memberOf.map((m) => m.group_id);
+
+    // Get groups and their members
+    const [groupsResult, membersResult, expensesResult] = await Promise.all([
+      supabaseAdmin.from('split_groups').select('*').in('id', groupIds).order('updated_at', { ascending: false }),
+      supabaseAdmin.from('split_group_members').select('*').in('group_id', groupIds),
+      supabaseAdmin.from('split_expenses').select('group_id, amount').in('group_id', groupIds),
+    ]);
+
+    // Build members map
+    const membersMap = {};
+    (membersResult.data || []).forEach((m) => {
+      if (!membersMap[m.group_id]) membersMap[m.group_id] = [];
+      membersMap[m.group_id].push(m);
+    });
+
+    // Build expense totals
+    const expenseMap = {};
+    (expensesResult.data || []).forEach((e) => {
+      if (!expenseMap[e.group_id]) expenseMap[e.group_id] = { total: 0, count: 0 };
+      expenseMap[e.group_id].total += parseFloat(e.amount);
+      expenseMap[e.group_id].count++;
+    });
+
+    const result = (groupsResult.data || []).map((g) => ({
+      ...mapGroupToApi(g, membersMap[g.id] || []),
+      expenseTotal: expenseMap[g.id]?.total || 0,
+      expenseCount: expenseMap[g.id]?.count || 0,
     }));
 
     res.json(result);
@@ -205,25 +235,40 @@ const createGroup = async (req, res) => {
       return res.status(400).json({ message: 'Group name is required' });
     }
 
-    const group = new SplitGroup({
-      name: name.trim(),
-      createdBy: req.user._id,
-      members: [
-        {
-          userId: req.user._id,
-          name: req.user.name,
-          email: req.user.email,
-          role: 'admin',
-          joinedAt: new Date(),
-        },
-      ],
-    });
+    // Generate invite token
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Auto-generate invite token on creation
-    group.generateInviteToken();
+    // Create group
+    const { data: group, error: groupError } = await supabaseAdmin
+      .from('split_groups')
+      .insert({
+        name: name.trim(),
+        created_by: req.user.id,
+        invite_token: inviteToken,
+        invite_token_expires_at: inviteTokenExpiresAt.toISOString(),
+      })
+      .select()
+      .single();
 
-    await group.save();
-    res.status(201).json(group);
+    if (groupError) throw groupError;
+
+    // Add creator as admin member
+    const { data: member, error: memberError } = await supabaseAdmin
+      .from('split_group_members')
+      .insert({
+        group_id: group.id,
+        user_id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        role: 'admin',
+      })
+      .select()
+      .single();
+
+    if (memberError) throw memberError;
+
+    res.status(201).json(mapGroupToApi(group, [member]));
   } catch (error) {
     handleError(res, error, 'SplitGroup');
   }
@@ -232,17 +277,22 @@ const createGroup = async (req, res) => {
 // ─── GET /api/split-groups/:groupId ───────────────────────────────────
 const getGroupDetails = async (req, res) => {
   try {
-    const group = req.group; // attached by requireGroupMember middleware
+    const group = req.group;
+    const members = req.groupMembers;
 
-    const expenses = await SplitExpense.find({ groupId: group._id })
-      .sort({ date: -1 })
-      .lean();
+    const { data: expenses, error: expError } = await supabaseAdmin
+      .from('split_expenses')
+      .select('*')
+      .eq('group_id', group.id)
+      .order('date', { ascending: false });
 
-    const settlement = calculateSettlement(group.members, expenses);
+    if (expError) throw expError;
+
+    const settlement = calculateSettlement(members, expenses || []);
 
     res.json({
-      group: group.toJSON(),
-      expenses,
+      group: mapGroupToApi(group, members),
+      expenses: (expenses || []).map((e) => mapToApi(e, { paidBy: 'paid_by', addedBy: 'added_by', groupId: 'group_id' })),
       settlement,
     });
   } catch (error) {
@@ -259,10 +309,16 @@ const updateGroup = async (req, res) => {
       return res.status(400).json({ message: 'Group name is required' });
     }
 
-    req.group.name = name.trim();
-    await req.group.save();
+    const { data, error } = await supabaseAdmin
+      .from('split_groups')
+      .update({ name: name.trim() })
+      .eq('id', req.group.id)
+      .select()
+      .single();
 
-    res.json(req.group);
+    if (error) throw error;
+
+    res.json(mapGroupToApi(data, req.groupMembers));
   } catch (error) {
     handleError(res, error, 'SplitGroup');
   }
@@ -272,8 +328,11 @@ const updateGroup = async (req, res) => {
 const deleteGroup = async (req, res) => {
   try {
     // Delete all expenses in the group first
-    await SplitExpense.deleteMany({ groupId: req.group._id });
-    await SplitGroup.findByIdAndDelete(req.group._id);
+    await supabaseAdmin.from('split_expenses').delete().eq('group_id', req.group.id);
+    // Delete all members
+    await supabaseAdmin.from('split_group_members').delete().eq('group_id', req.group.id);
+    // Delete the group
+    await supabaseAdmin.from('split_groups').delete().eq('id', req.group.id);
 
     res.json({ message: 'Group deleted successfully' });
   } catch (error) {
@@ -284,13 +343,25 @@ const deleteGroup = async (req, res) => {
 // ─── POST /api/split-groups/:groupId/invite ───────────────────────────
 const generateInvite = async (req, res) => {
   try {
-    const token = req.group.generateInviteToken();
-    await req.group.save();
+    const inviteToken = crypto.randomBytes(32).toString('hex');
+    const inviteTokenExpiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const { data, error } = await supabaseAdmin
+      .from('split_groups')
+      .update({
+        invite_token: inviteToken,
+        invite_token_expires_at: inviteTokenExpiresAt.toISOString(),
+      })
+      .eq('id', req.group.id)
+      .select()
+      .single();
+
+    if (error) throw error;
 
     const baseUrl = process.env.FRONTEND_URL || 'https://finkert.vercel.app';
-    const inviteLink = `${baseUrl}/join/${token}`;
+    const inviteLink = `${baseUrl}/join/${inviteToken}`;
 
-    res.json({ inviteToken: token, inviteLink, expiresAt: req.group.inviteTokenExpiresAt });
+    res.json({ inviteToken, inviteLink, expiresAt: inviteTokenExpiresAt });
   } catch (error) {
     handleError(res, error, 'SplitGroup');
   }
@@ -301,42 +372,56 @@ const joinGroup = async (req, res) => {
   try {
     const { token } = req.params;
 
-    const group = await SplitGroup.findOne({
-      inviteToken: token,
-      inviteTokenExpiresAt: { $gt: new Date() },
-    });
+    const { data: group, error: groupError } = await supabaseAdmin
+      .from('split_groups')
+      .select('*')
+      .eq('invite_token', token)
+      .gt('invite_token_expires_at', new Date().toISOString())
+      .single();
 
-    if (!group) {
+    if (groupError || !group) {
       return res.status(404).json({ message: 'Invalid or expired invite link' });
     }
 
+    // Get members
+    const { data: members } = await supabaseAdmin
+      .from('split_group_members')
+      .select('*')
+      .eq('group_id', group.id);
+
     // Check if already a member
-    if (group.isMember(req.user._id)) {
-      return res.json({ message: 'You are already a member of this group', group });
+    const isMember = (members || []).some((m) => m.user_id === req.user.id);
+    if (isMember) {
+      return res.json({ message: 'You are already a member of this group', group: mapGroupToApi(group, members) });
     }
 
     // Check member limit
-    if (group.members.length >= 20) {
+    if ((members || []).length >= 20) {
       return res.status(400).json({ message: 'This group has reached the maximum of 20 members' });
     }
 
     // Check if group is settled
-    if (group.isSettled) {
+    if (group.is_settled) {
       return res.status(400).json({ message: 'This group has been settled. No new members allowed.' });
     }
 
     // Add user to group
-    group.members.push({
-      userId: req.user._id,
-      name: req.user.name,
-      email: req.user.email,
-      role: 'member',
-      joinedAt: new Date(),
-    });
+    const { data: newMember, error: memberError } = await supabaseAdmin
+      .from('split_group_members')
+      .insert({
+        group_id: group.id,
+        user_id: req.user.id,
+        name: req.user.name,
+        email: req.user.email,
+        role: 'member',
+      })
+      .select()
+      .single();
 
-    await group.save();
+    if (memberError) throw memberError;
 
-    res.json({ message: `Joined "${group.name}" successfully`, group });
+    const updatedMembers = [...(members || []), newMember];
+    res.json({ message: `Joined "${group.name}" successfully`, group: mapGroupToApi(group, updatedMembers) });
   } catch (error) {
     handleError(res, error, 'SplitGroup');
   }
@@ -345,11 +430,11 @@ const joinGroup = async (req, res) => {
 // ─── POST /api/split-groups/:groupId/leave ────────────────────────────
 const leaveGroup = async (req, res) => {
   try {
-    const userId = req.user._id.toString();
+    const userId = req.user.id;
 
     // Admin cannot leave if they're the only admin
     if (req.memberRole === 'admin') {
-      const adminCount = req.group.members.filter((m) => m.role === 'admin').length;
+      const adminCount = req.groupMembers.filter((m) => m.role === 'admin').length;
       if (adminCount <= 1) {
         return res.status(400).json({
           message: 'You are the only admin. Transfer admin role or delete the group.',
@@ -357,11 +442,12 @@ const leaveGroup = async (req, res) => {
       }
     }
 
-    req.group.members = req.group.members.filter(
-      (m) => m.userId.toString() !== userId
-    );
+    await supabaseAdmin
+      .from('split_group_members')
+      .delete()
+      .eq('group_id', req.group.id)
+      .eq('user_id', userId);
 
-    await req.group.save();
     res.json({ message: 'You have left the group' });
   } catch (error) {
     handleError(res, error, 'SplitGroup');
@@ -373,19 +459,13 @@ const removeMember = async (req, res) => {
   try {
     const targetUserId = req.params.userId;
 
-    if (!mongoose.Types.ObjectId.isValid(targetUserId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
-    }
-
     // Cannot remove yourself — use leave instead
-    if (targetUserId === req.user._id.toString()) {
+    if (targetUserId === req.user.id) {
       return res.status(400).json({ message: 'Use the leave endpoint to leave the group' });
     }
 
-    // Cannot remove another admin
-    const target = req.group.members.find(
-      (m) => m.userId.toString() === targetUserId
-    );
+    // Find target member
+    const target = req.groupMembers.find((m) => m.user_id === targetUserId);
 
     if (!target) {
       return res.status(404).json({ message: 'User is not a member of this group' });
@@ -395,11 +475,12 @@ const removeMember = async (req, res) => {
       return res.status(400).json({ message: 'Cannot remove another admin' });
     }
 
-    req.group.members = req.group.members.filter(
-      (m) => m.userId.toString() !== targetUserId
-    );
+    await supabaseAdmin
+      .from('split_group_members')
+      .delete()
+      .eq('group_id', req.group.id)
+      .eq('user_id', targetUserId);
 
-    await req.group.save();
     res.json({ message: 'Member removed successfully' });
   } catch (error) {
     handleError(res, error, 'SplitGroup');
@@ -409,15 +490,20 @@ const removeMember = async (req, res) => {
 // ─── PATCH /api/split-groups/:groupId/settle ──────────────────────────
 const settleGroup = async (req, res) => {
   try {
-    if (req.group.isSettled) {
+    if (req.group.is_settled) {
       return res.status(400).json({ message: 'Group is already settled' });
     }
 
-    req.group.isSettled = true;
-    req.group.settledAt = new Date();
-    await req.group.save();
+    const { data, error } = await supabaseAdmin
+      .from('split_groups')
+      .update({ is_settled: true, settled_at: new Date().toISOString() })
+      .eq('id', req.group.id)
+      .select()
+      .single();
 
-    res.json({ message: 'Group settled successfully', group: req.group });
+    if (error) throw error;
+
+    res.json({ message: 'Group settled successfully', group: mapGroupToApi(data, req.groupMembers) });
   } catch (error) {
     handleError(res, error, 'SplitGroup');
   }
@@ -426,11 +512,15 @@ const settleGroup = async (req, res) => {
 // ─── GET /api/split-groups/:groupId/expenses ──────────────────────────
 const getExpenses = async (req, res) => {
   try {
-    const expenses = await SplitExpense.find({ groupId: req.group._id })
-      .sort({ date: -1 })
-      .lean();
+    const { data: expenses, error } = await supabaseAdmin
+      .from('split_expenses')
+      .select('*')
+      .eq('group_id', req.group.id)
+      .order('date', { ascending: false });
 
-    res.json(expenses);
+    if (error) throw error;
+
+    res.json((expenses || []).map((e) => mapToApi(e, { paidBy: 'paid_by', addedBy: 'added_by', groupId: 'group_id' })));
   } catch (error) {
     handleError(res, error, 'SplitExpense');
   }
@@ -439,7 +529,7 @@ const getExpenses = async (req, res) => {
 // ─── POST /api/split-groups/:groupId/expenses ─────────────────────────
 const addExpense = async (req, res) => {
   try {
-    if (req.group.isSettled) {
+    if (req.group.is_settled) {
       return res.status(400).json({ message: 'Cannot add expenses to a settled group' });
     }
 
@@ -451,12 +541,9 @@ const addExpense = async (req, res) => {
       });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(paidBy)) {
-      return res.status(400).json({ message: 'Invalid paidBy user ID' });
-    }
-
     // Verify paidBy is a group member
-    if (!req.group.isMember(paidBy)) {
+    const isMember = req.groupMembers.some((m) => m.user_id === paidBy);
+    if (!isMember) {
       return res.status(400).json({ message: 'The person who paid must be a group member' });
     }
 
@@ -465,16 +552,22 @@ const addExpense = async (req, res) => {
       return res.status(400).json({ message: 'Amount must be a positive number' });
     }
 
-    const expense = await SplitExpense.create({
-      groupId: req.group._id,
-      title: title.trim(),
-      amount: parsedAmount,
-      paidBy,
-      date: new Date(date),
-      addedBy: req.user._id,
-    });
+    const { data: expense, error } = await supabaseAdmin
+      .from('split_expenses')
+      .insert({
+        group_id: req.group.id,
+        title: title.trim(),
+        amount: parsedAmount,
+        paid_by: paidBy,
+        date: new Date(date).toISOString().split('T')[0],
+        added_by: req.user.id,
+      })
+      .select()
+      .single();
 
-    res.status(201).json(expense);
+    if (error) throw error;
+
+    res.status(201).json(mapToApi(expense, { paidBy: 'paid_by', addedBy: 'added_by', groupId: 'group_id' }));
   } catch (error) {
     handleError(res, error, 'SplitExpense');
   }
@@ -483,56 +576,58 @@ const addExpense = async (req, res) => {
 // ─── PUT /api/split-groups/:groupId/expenses/:expenseId ───────────────
 const updateExpense = async (req, res) => {
   try {
-    if (req.group.isSettled) {
+    if (req.group.is_settled) {
       return res.status(400).json({ message: 'Cannot edit expenses in a settled group' });
     }
 
     const { expenseId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(expenseId)) {
-      return res.status(400).json({ message: 'Invalid expense ID' });
-    }
+    const { data: expense, error: fetchError } = await supabaseAdmin
+      .from('split_expenses')
+      .select('*')
+      .eq('id', expenseId)
+      .eq('group_id', req.group.id)
+      .single();
 
-    const expense = await SplitExpense.findOne({
-      _id: expenseId,
-      groupId: req.group._id,
-    });
-
-    if (!expense) {
+    if (fetchError || !expense) {
       return res.status(404).json({ message: 'Expense not found' });
     }
 
     // Only the person who added or group admin can edit
-    if (
-      expense.addedBy.toString() !== req.user._id.toString() &&
-      req.memberRole !== 'admin'
-    ) {
+    if (expense.added_by !== req.user.id && req.memberRole !== 'admin') {
       return res.status(403).json({ message: 'Only the person who added this expense or the admin can edit it' });
     }
 
     const { title, amount, paidBy, date } = req.body;
+    const updates = {};
 
-    if (title) expense.title = title.trim();
+    if (title) updates.title = title.trim();
     if (amount) {
       const parsedAmount = parseFloat(amount);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return res.status(400).json({ message: 'Amount must be a positive number' });
       }
-      expense.amount = parsedAmount;
+      updates.amount = parsedAmount;
     }
     if (paidBy) {
-      if (!mongoose.Types.ObjectId.isValid(paidBy)) {
-        return res.status(400).json({ message: 'Invalid paidBy user ID' });
-      }
-      if (!req.group.isMember(paidBy)) {
+      const isMember = req.groupMembers.some((m) => m.user_id === paidBy);
+      if (!isMember) {
         return res.status(400).json({ message: 'The person who paid must be a group member' });
       }
-      expense.paidBy = paidBy;
+      updates.paid_by = paidBy;
     }
-    if (date) expense.date = new Date(date);
+    if (date) updates.date = new Date(date).toISOString().split('T')[0];
 
-    await expense.save();
-    res.json(expense);
+    const { data: updated, error: updateError } = await supabaseAdmin
+      .from('split_expenses')
+      .update(updates)
+      .eq('id', expenseId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    res.json(mapToApi(updated, { paidBy: 'paid_by', addedBy: 'added_by', groupId: 'group_id' }));
   } catch (error) {
     handleError(res, error, 'SplitExpense');
   }
@@ -541,34 +636,29 @@ const updateExpense = async (req, res) => {
 // ─── DELETE /api/split-groups/:groupId/expenses/:expenseId ────────────
 const deleteExpense = async (req, res) => {
   try {
-    if (req.group.isSettled) {
+    if (req.group.is_settled) {
       return res.status(400).json({ message: 'Cannot delete expenses in a settled group' });
     }
 
     const { expenseId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(expenseId)) {
-      return res.status(400).json({ message: 'Invalid expense ID' });
-    }
+    const { data: expense, error: fetchError } = await supabaseAdmin
+      .from('split_expenses')
+      .select('*')
+      .eq('id', expenseId)
+      .eq('group_id', req.group.id)
+      .single();
 
-    const expense = await SplitExpense.findOne({
-      _id: expenseId,
-      groupId: req.group._id,
-    });
-
-    if (!expense) {
+    if (fetchError || !expense) {
       return res.status(404).json({ message: 'Expense not found' });
     }
 
     // Only the person who added or group admin can delete
-    if (
-      expense.addedBy.toString() !== req.user._id.toString() &&
-      req.memberRole !== 'admin'
-    ) {
+    if (expense.added_by !== req.user.id && req.memberRole !== 'admin') {
       return res.status(403).json({ message: 'Only the person who added this expense or the admin can delete it' });
     }
 
-    await SplitExpense.findByIdAndDelete(expenseId);
+    await supabaseAdmin.from('split_expenses').delete().eq('id', expenseId);
     res.json({ message: 'Expense deleted successfully' });
   } catch (error) {
     handleError(res, error, 'SplitExpense');

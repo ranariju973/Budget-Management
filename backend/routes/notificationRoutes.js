@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { protect } = require('../middleware/auth');
-const User = require('../models/User');
+const { supabaseAdmin } = require('../config/supabase');
 
 // @route   GET /api/notifications/vapidPublicKey
 // @desc    Get the VAPID public key
@@ -24,20 +24,31 @@ router.post('/subscribe', protect, async (req, res) => {
       return res.status(400).json({ message: 'Invalid subscription object' });
     }
 
-    const user = await User.findById(req.user._id);
+    // Get current user's push subscriptions
+    const { data: user, error: fetchError } = await supabaseAdmin
+      .from('users')
+      .select('id, push_subscriptions')
+      .eq('id', req.user.id)
+      .single();
 
-    if (!user) {
+    if (fetchError || !user) {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    // Check if the subscription endpoint already exists for this user to avoid duplicates
-    const existingSub = user.pushSubscriptions.find(
-      (sub) => sub.endpoint === subscription.endpoint
-    );
+    const currentSubs = user.push_subscriptions || [];
+
+    // Check if the subscription endpoint already exists to avoid duplicates
+    const existingSub = currentSubs.find((sub) => sub.endpoint === subscription.endpoint);
 
     if (!existingSub) {
-      user.pushSubscriptions.push(subscription);
-      await user.save();
+      const updatedSubs = [...currentSubs, subscription];
+      
+      const { error: updateError } = await supabaseAdmin
+        .from('users')
+        .update({ push_subscriptions: updatedSubs })
+        .eq('id', req.user.id);
+
+      if (updateError) throw updateError;
     }
 
     res.status(201).json({ message: 'Subscription added successfully' });

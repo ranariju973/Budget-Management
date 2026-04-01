@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const { supabaseAdmin } = require('../config/supabase');
 const { handleError } = require('../utils/errorHandler');
 
 // Generate JWT — long-lived token (15 days)
@@ -15,7 +16,6 @@ const isValidEmail = (email) => /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}
 
 // Password strength check
 const isStrongPassword = (password) => {
-  // Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number
   return (
     password.length >= 8 &&
     /[A-Z]/.test(password) &&
@@ -50,22 +50,40 @@ const signup = async (req, res) => {
     }
 
     // Check if user already exists
-    const existingUser = await User.findOne({ email });
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase().trim())
+      .single();
+
     if (existingUser) {
       return res.status(400).json({ message: 'User already exists with this email' });
     }
 
-    // Create user (trim name to prevent whitespace abuse)
-    const user = await User.create({ name: name.trim(), email: email.toLowerCase().trim(), password });
+    // Hash password
+    const salt = await bcrypt.genSalt(12);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
+    // Create user
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .insert({
+        name: name.trim(),
+        email: email.toLowerCase().trim(),
+        password: hashedPassword,
+      })
+      .select('id, name, email')
+      .single();
+
+    if (error) throw error;
 
     res.status(201).json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: generateToken(user.id),
     });
   } catch (error) {
-    // Never expose internal error details to client
     console.error('Signup error:', error.message);
     res.status(500).json({ message: 'Registration failed. Please try again.' });
   }
@@ -88,22 +106,28 @@ const login = async (req, res) => {
       return res.status(400).json({ message: 'Password is required' });
     }
 
-    // Find user — explicitly select password (hidden by default in schema)
-    const user = await User.findOne({ email: email.toLowerCase().trim() }).select('+password');
-    if (!user) {
+    // Find user with password
+    const { data: user, error } = await supabaseAdmin
+      .from('users')
+      .select('id, name, email, password')
+      .eq('email', email.toLowerCase().trim())
+      .single();
+
+    if (error || !user) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
-    const isMatch = await user.matchPassword(password);
+    // Check password
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
     res.json({
-      _id: user._id,
+      _id: user.id,
       name: user.name,
       email: user.email,
-      token: generateToken(user._id),
+      token: generateToken(user.id),
     });
   } catch (error) {
     console.error('Login error:', error.message);
@@ -119,7 +143,7 @@ const login = async (req, res) => {
 const getMe = async (req, res) => {
   try {
     res.json({
-      _id: req.user._id,
+      _id: req.user.id,
       name: req.user.name,
       email: req.user.email,
     });
@@ -128,41 +152,32 @@ const getMe = async (req, res) => {
   }
 };
 
+/**
+ * @desc    Delete user account and all data
+ * @route   DELETE /api/auth/delete-account
+ * @access  Private
+ */
 const deleteAccount = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.id;
 
-    // We need to require models here to prevent circular dependency issues if not already required
-    const Income = require('../models/Income');
-    const Expense = require('../models/Expense');
-    const Borrow = require('../models/Borrow');
-    const Lend = require('../models/Lend');
-    const BudgetGoal = require('../models/BudgetGoal');
-    const SplitGroup = require('../models/SplitGroup');
+    // Delete all user data (cascade should handle most, but explicit for safety)
+    await Promise.all([
+      supabaseAdmin.from('incomes').delete().eq('user_id', userId),
+      supabaseAdmin.from('expenses').delete().eq('user_id', userId),
+      supabaseAdmin.from('borrows').delete().eq('user_id', userId),
+      supabaseAdmin.from('lends').delete().eq('user_id', userId),
+      supabaseAdmin.from('budget_goals').delete().eq('user_id', userId),
+    ]);
 
-    // Delete personal tracking data
-    await Income.deleteMany({ userId });
-    await Expense.deleteMany({ userId });
-    await Borrow.deleteMany({ userId });
-    await Lend.deleteMany({ userId });
-    await BudgetGoal.deleteMany({ userId });
+    // Anonymize user in split groups
+    await supabaseAdmin
+      .from('split_group_members')
+      .update({ name: 'Deleted User', email: 'deleted@example.com' })
+      .eq('user_id', userId);
 
-    // Anonymize user in SplitGroups to preserve mathematical integrity
-    await SplitGroup.updateMany(
-      { 'members.userId': userId },
-      { 
-        $set: { 
-          'members.$[elem].name': 'Deleted User',
-          'members.$[elem].email': 'deleted@example.com'
-        } 
-      },
-      {
-        arrayFilters: [{ 'elem.userId': userId }]
-      }
-    );
-
-    // Hard delete the user
-    await User.findByIdAndDelete(userId);
+    // Delete user
+    await supabaseAdmin.from('users').delete().eq('id', userId);
 
     res.json({ message: 'Account deleted successfully' });
   } catch (error) {

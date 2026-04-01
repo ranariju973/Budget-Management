@@ -25,8 +25,8 @@ router.get(
   '/google/callback',
   passport.authenticate('google', { session: false, failureRedirect: '/login' }),
   (req, res) => {
-    // Generate JWT token
-    const token = jwt.sign({ id: req.user._id }, process.env.JWT_SECRET, {
+    // Generate JWT token (user.id is Supabase UUID)
+    const token = jwt.sign({ id: req.user.id }, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRE || '15d',
       algorithm: 'HS256',
     });

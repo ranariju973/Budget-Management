@@ -1,5 +1,6 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { scheduleLocalNotification } from './notificationService';
 
 const QUEUE_KEY = 'offline_request_queue';
 const CACHE_KEY = 'offline_get_cache';
@@ -94,7 +95,9 @@ export const processOfflineQueue = async () => {
     localStorage.setItem(QUEUE_KEY, JSON.stringify(failedQueue));
     if (failedQueue.length === 0) {
         toast.success('All offline data synced!');
+        scheduleLocalNotification('Sync Complete ✅', 'Your offline expenses have safely reached the cloud database.');
     } else {
         toast.error('Some offline data failed to sync.');
+        scheduleLocalNotification('Sync Alert ⚠️', 'We synced most of your data, but some items failed.');
     }
 };

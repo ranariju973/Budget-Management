@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { addToOfflineQueue, getOfflineCache, setOfflineCache, updateOfflineCacheOptimistically } from './syncService';
+import { scheduleLocalNotification } from './notificationService';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -58,12 +59,47 @@ api.interceptors.response.use(
   (response) => {
     if (response.config.method === 'get') {
       setOfflineCache(response.config.url, response.data);
+    } else if (response.config.method === 'post' || response.config.method === 'put' || response.config.method === 'delete') {
+      // Dynamic notification messages based on endpoint
+      const entityMatch = response.config.url.match(/api\/([^/]+)/);
+      if (entityMatch) {
+         let action = response.config.method === 'post' ? 'added' : (response.config.method === 'put' ? 'updated' : 'removed');
+         let entity = entityMatch[1];
+         // Simple capitalize and generic message
+         entity = entity.charAt(0).toUpperCase() + entity.slice(1);
+         scheduleLocalNotification('Action Successful!', `${entity} successfully ${action}.`);
+      }
     }
     return response;
   },
   (error) => {
+    // error.response missing = network error / timeout (server sleeping or bad connection)
+    if (!error.response) {
+      if (error.config.method === 'get') {
+        const cachedData = getOfflineCache(error.config.url);
+        return Promise.resolve({
+          data: cachedData || (error.config.url.includes('auth') ? {} : []),
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: error.config,
+          request: {}
+        });
+      } else {
+        addToOfflineQueue(error.config);
+        updateOfflineCacheOptimistically(error.config);
+        return Promise.resolve({
+          data: { _id: Date.now().toString(), message: 'Offline mock success' },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: error.config,
+          request: {}
+        });
+      }
+    }
+
     // error.response exists = server replied with 4xx/5xx
-    // error.response missing = network error / timeout (server sleeping, don't logout)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {

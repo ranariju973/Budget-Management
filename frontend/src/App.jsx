@@ -37,7 +37,8 @@ function App() {
     // Capacitor App URL Listener for Deep Linking OAuth Redirects
     if (Capacitor.isNativePlatform()) {
       CapacitorApp.addListener('appUrlOpen', async (data) => {
-        if (data.url.includes('/oauth-callback')) {
+        // Handle both older https scheme and new custom finkart:// scheme
+        if (data.url.includes('oauth-callback') || data.url.includes('auth-callback')) {
           const parsedUrl = new URL(data.url);
           const token = parsedUrl.searchParams.get('token');
           if (token) {

@@ -75,17 +75,21 @@ api.interceptors.response.use(
   }
 );
 
-export const getGoogleAuthUrl = () => {
+export const getGoogleAuthUrl = (source = 'web') => {
   const base = import.meta.env.VITE_API_URL || 'http://localhost:5001';
   // Remove trailing slash if any
   const cleanBase = base.replace(/\/$/, '');
   
+  let url = '';
   // If the base URL already includes /api, just append /auth/google
   if (cleanBase.endsWith('/api')) {
-    return `${cleanBase}/auth/google`;
+    url = `${cleanBase}/auth/google`;
+  } else {
+    // Otherwise append /api/auth/google
+    url = `${cleanBase}/api/auth/google`;
   }
-  // Otherwise append /api/auth/google
-  return `${cleanBase}/api/auth/google`;
+
+  return `${url}?source=${source}`;
 };
 
 export default api;

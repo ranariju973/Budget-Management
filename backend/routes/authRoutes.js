@@ -18,7 +18,13 @@ router.delete('/account', protect, deleteAccount);
 // Google OAuth routes
 router.get(
   '/google',
-  passport.authenticate('google', { scope: ['profile', 'email'], session: false })
+  (req, res, next) => {
+    passport.authenticate('google', { 
+      scope: ['profile', 'email'], 
+      session: false,
+      state: req.query.source || 'web' // Record the source to branch redirect later
+    })(req, res, next);
+  }
 );
 
 router.get(
@@ -30,6 +36,11 @@ router.get(
       expiresIn: process.env.JWT_EXPIRE || '15d',
       algorithm: 'HS256',
     });
+
+    // Redirect to custom scheme immediately if initiated from native Android App
+    if (req.query.state === 'app') {
+      return res.redirect(`finkart://auth-callback?token=${token}`);
+    }
 
     // Prefer explicit FRONTEND_URL, fallback to the first allowed origin, or localhost
     let frontendUrl = process.env.FRONTEND_URL;

@@ -145,10 +145,11 @@ const Login = () => {
             type="button" 
             className="auth-btn-google"
             onClick={async () => {
-              const url = getGoogleAuthUrl();
               if (Capacitor.isNativePlatform()) {
+                const url = getGoogleAuthUrl('app');
                 await Browser.open({ url });
               } else {
+                const url = getGoogleAuthUrl('web');
                 window.location.href = url;
               }
             }}

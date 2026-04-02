@@ -1,5 +1,9 @@
 {
   "appId": "com.budget.app",
   "appName": "FinKart",
-  "webDir": "dist"
+  "webDir": "dist",
+  "server": {
+    "cleartext": true,
+    "androidScheme": "https"
+  }
 }

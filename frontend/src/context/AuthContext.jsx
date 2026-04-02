@@ -40,11 +40,20 @@ export const AuthProvider = ({ children }) => {
         try {
           const res = await api.get('/auth/me');
           setUser(res.data);
-        } catch {
-          // Token is invalid; clear it
-          localStorage.removeItem('token');
-          setToken(null);
-          setUser(null);
+          localStorage.setItem('user_cache', JSON.stringify(res.data));
+        } catch (error) {
+          // Only log out if the server explicitly says our token is invalid (401)
+          if (error.response && error.response.status === 401) {
+            localStorage.removeItem('token');
+            setToken(null);
+            setUser(null);
+          } else {
+            // We are likely offline - hydrate user from cache
+            const storedUser = localStorage.getItem('user_cache');
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
+          }
         }
       }
       setLoading(false);
@@ -56,6 +65,7 @@ export const AuthProvider = ({ children }) => {
     const res = await api.post('/auth/login', { email, password });
     const { token: newToken, ...userData } = res.data;
     localStorage.setItem('token', newToken);
+    localStorage.setItem('user_cache', JSON.stringify(userData));
     setToken(newToken);
     setUser(userData);
     return res.data;
@@ -65,6 +75,7 @@ export const AuthProvider = ({ children }) => {
     const res = await api.post('/auth/signup', { name, email, password });
     const { token: newToken, ...userData } = res.data;
     localStorage.setItem('token', newToken);
+    localStorage.setItem('user_cache', JSON.stringify(userData));
     setToken(newToken);
     setUser(userData);
     return res.data;
@@ -72,6 +83,7 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('user_cache');
     delete api.defaults.headers.common['Authorization'];
     setToken(null);
     setUser(null);

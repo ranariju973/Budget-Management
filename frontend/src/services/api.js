@@ -63,11 +63,11 @@ api.interceptors.response.use(
     return response;
   },
   (error) => {
-    // error.response exists = server replied with 401 (token truly invalid/expired)
+    // error.response exists = server replied with 4xx/5xx
     // error.response missing = network error / timeout (server sleeping, don't logout)
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
-      if (window.location.pathname !== '/login') {
+      if (window.location.pathname !== '/login' && window.location.pathname !== '/signup') {
         window.location.href = '/login';
       }
     }

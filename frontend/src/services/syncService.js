@@ -25,6 +25,36 @@ export const setOfflineCache = (url, data) => {
   localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
 };
 
+export const updateOfflineCacheOptimistically = (config) => {
+  if (config.method === 'get') return;
+  try {
+    const cache = JSON.parse(localStorage.getItem(CACHE_KEY) || '{}');
+    const urlParts = config.url.split('?')[0].split('/');
+    const entity = urlParts.includes('api') ? urlParts[urlParts.indexOf('api') + 1] : urlParts[1]; 
+    if (!entity) return;
+
+    Object.keys(cache).forEach(key => {
+      if (key.includes(`/${entity}`)) {
+        if (Array.isArray(cache[key])) {
+          if (config.method === 'post') {
+            const newItem = { _id: Date.now().toString(), ...JSON.parse(config.data) };
+            cache[key] = [newItem, ...cache[key]];
+          } else if (config.method === 'delete') {
+            const delId = urlParts.pop();
+            cache[key] = cache[key].filter(x => x._id !== delId);
+          } else if (config.method === 'put') {
+            const putId = urlParts.pop();
+            cache[key] = cache[key].map(x => x._id === putId ? { ...x, ...JSON.parse(config.data) } : x);
+          }
+        }
+      }
+    });
+    localStorage.setItem(CACHE_KEY, JSON.stringify(cache));
+  } catch (e) {
+    console.error('Failed to update offline cache optimistically', e);
+  }
+};
+
 export const processOfflineQueue = async () => {
     if (!navigator.onLine) return;
     

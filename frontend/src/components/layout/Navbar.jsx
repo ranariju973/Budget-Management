@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { Capacitor } from '@capacitor/core';
 import { FiSun, FiMoon, FiLogOut, FiPieChart, FiDownload } from 'react-icons/fi';
 
 const Navbar = ({ setActiveSection }) => {
@@ -26,15 +27,17 @@ const Navbar = ({ setActiveSection }) => {
         </div>
 
         <div className="flex items-center gap-4 relative">
-          <a
-            href="/FinKart.apk"
-            download="FinKart.apk"
-            className="flex lg:hidden items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-white shadow-sm active:scale-[0.96] transition-transform"
-            style={{ backgroundColor: 'var(--color-primary)' }}
-          >
-            <FiDownload size={14} />
-            Get App
-          </a>
+          {!Capacitor.isNativePlatform() && (
+            <a
+              href="/FinKart.apk"
+              download="FinKart.apk"
+              className="flex lg:hidden items-center justify-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-bold text-white shadow-sm active:scale-[0.96] transition-transform"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              <FiDownload size={14} />
+              Get App
+            </a>
+          )}
 
           <div className="hidden sm:flex flex-col items-end mr-1">
             <span className="text-[14px] font-semibold leading-none tracking-tight" style={{ color: 'var(--color-text)' }}>

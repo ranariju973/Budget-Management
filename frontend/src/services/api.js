@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { addToOfflineQueue, getOfflineCache, setOfflineCache } from './syncService';
+import { addToOfflineQueue, getOfflineCache, setOfflineCache, updateOfflineCacheOptimistically } from './syncService';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -21,20 +21,19 @@ api.interceptors.request.use(
     if (!navigator.onLine) {
       if (config.method === 'get') {
         const cachedData = getOfflineCache(config.url);
-        if (cachedData) {
-          config.adapter = () => {
-            return Promise.resolve({
-              data: cachedData,
-              status: 200,
-              statusText: 'OK',
-              headers: {},
-              config,
-              request: {}
-            });
-          };
-        }
+        config.adapter = () => {
+          return Promise.resolve({
+            data: cachedData || (config.url.includes('auth') ? {} : []),
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config,
+            request: {}
+          });
+        };
       } else {
         addToOfflineQueue(config);
+        updateOfflineCacheOptimistically(config);
         config.adapter = () => {
           return Promise.resolve({
             data: { _id: Date.now().toString(), message: 'Offline mock success' },

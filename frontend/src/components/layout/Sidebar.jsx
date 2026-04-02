@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { Capacitor } from '@capacitor/core';
 import {
   FiGrid,
   FiCreditCard,
@@ -98,15 +99,17 @@ const Sidebar = ({ activeSection, setActiveSection }) => {
         {/* Footer */}
         <div className="px-3 pb-6 space-y-0.5" style={{ borderTop: '1px solid var(--color-border)' }}>
           <div className="pt-3" />
-          <a
-            href="/FinKart.apk"
-            download="FinKart.apk"
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-2 rounded-xl text-[13px] font-bold text-white transition-all shadow-md active:scale-[0.98]"
-            style={{ backgroundColor: 'var(--color-primary)' }}
-          >
-            <FiDownload size={16} />
-            Get App
-          </a>
+          {!Capacitor.isNativePlatform() && (
+            <a
+              href="/FinKart.apk"
+              download="FinKart.apk"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2 mb-2 rounded-xl text-[13px] font-bold text-white transition-all shadow-md active:scale-[0.98]"
+              style={{ backgroundColor: 'var(--color-primary)' }}
+            >
+              <FiDownload size={16} />
+              Get App
+            </a>
+          )}
           <button
             onClick={toggleTheme}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-[13px] font-medium transition-colors duration-150 tap-effect"

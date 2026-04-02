@@ -4,6 +4,8 @@ import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
 import { getGoogleAuthUrl } from '../services/api';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: '', password: '' });
@@ -142,7 +144,14 @@ const Login = () => {
           <button 
             type="button" 
             className="auth-btn-google"
-            onClick={() => window.location.href = getGoogleAuthUrl()}
+            onClick={async () => {
+              const url = getGoogleAuthUrl();
+              if (Capacitor.isNativePlatform()) {
+                await Browser.open({ url });
+              } else {
+                window.location.href = url;
+              }
+            }}
           >
             <svg viewBox="0 0 24 24" width="20" height="20">
               <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>

@@ -11,6 +11,10 @@ import OAuthCallback from './pages/OAuthCallback';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
 
+import { App as CapacitorApp } from '@capacitor/app';
+import { Browser } from '@capacitor/browser';
+import { Capacitor } from '@capacitor/core';
+
 function App() {
   const { loading, isAuthenticated } = useAuth();
 
@@ -30,9 +34,26 @@ function App() {
       processOfflineQueue();
     }
 
+    // Capacitor App URL Listener for Deep Linking OAuth Redirects
+    if (Capacitor.isNativePlatform()) {
+      CapacitorApp.addListener('appUrlOpen', async (data) => {
+        if (data.url.includes('/oauth-callback')) {
+          const parsedUrl = new URL(data.url);
+          const token = parsedUrl.searchParams.get('token');
+          if (token) {
+            await Browser.close();
+            window.location.href = `/oauth-callback?token=${token}`;
+          }
+        }
+      });
+    }
+
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      if (Capacitor.isNativePlatform()) {
+        CapacitorApp.removeAllListeners();
+      }
     };
   }, []);
 

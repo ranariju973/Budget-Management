@@ -20,8 +20,11 @@ export const ThemeProvider = ({ children }) => {
     // Set Native Platform UI Colors (Android)
     if (Capacitor.isNativePlatform()) {
       import('@capacitor/status-bar').then(({ StatusBar, Style }) => {
-        StatusBar.setBackgroundColor({ color: darkMode ? '#1c1c1e' : '#f5f5f7' }).catch(() => {});
+        StatusBar.setBackgroundColor({ color: darkMode ? '#000000' : '#ffffff' }).catch(() => {});
         StatusBar.setStyle({ style: darkMode ? Style.Dark : Style.Light }).catch(() => {});
+      });
+      import('@capgo/capacitor-navigation-bar').then(({ NavigationBar }) => {
+        NavigationBar.setNavigationBarColor({ color: darkMode ? '#000000' : '#ffffff', darkButtons: !darkMode }).catch(() => {});
       });
     }
   }, [darkMode]);

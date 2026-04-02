@@ -10,6 +10,7 @@ import JoinGroup from './pages/JoinGroup';
 import OAuthCallback from './pages/OAuthCallback';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import { setupDailyReminders } from './services/notificationService';
 
 import { App as CapacitorApp } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
@@ -33,6 +34,8 @@ function App() {
     if (navigator.onLine) {
       processOfflineQueue();
     }
+
+    setupDailyReminders();
 
     // Capacitor App URL Listener for Deep Linking OAuth Redirects
     if (Capacitor.isNativePlatform()) {

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { addToOfflineQueue, getOfflineCache, setOfflineCache } from './syncService';
 
 // Create axios instance with base URL
 const api = axios.create({
@@ -16,6 +17,37 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
+    if (!navigator.onLine) {
+      if (config.method === 'get') {
+        const cachedData = getOfflineCache(config.url);
+        if (cachedData) {
+          config.adapter = () => {
+            return Promise.resolve({
+              data: cachedData,
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config,
+              request: {}
+            });
+          };
+        }
+      } else {
+        addToOfflineQueue(config);
+        config.adapter = () => {
+          return Promise.resolve({
+            data: { _id: Date.now().toString(), message: 'Offline mock success' },
+            status: 200,
+            statusText: 'OK',
+            headers: {},
+            config,
+            request: {}
+          });
+        };
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(error)
@@ -24,7 +56,12 @@ api.interceptors.request.use(
 // Response interceptor: Handle 401 (auto-logout)
 // Only logout on real 401 from server, NOT on network errors (Render cold start)
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.config.method === 'get') {
+      setOfflineCache(response.config.url, response.data);
+    }
+    return response;
+  },
   (error) => {
     // error.response exists = server replied with 401 (token truly invalid/expired)
     // error.response missing = network error / timeout (server sleeping, don't logout)

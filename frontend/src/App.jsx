@@ -1,5 +1,7 @@
+import { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
+import { Toaster, toast } from 'react-hot-toast';
+import { processOfflineQueue } from './services/syncService';
 import { useAuth } from './context/AuthContext';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
@@ -11,6 +13,28 @@ import LoadingSpinner from './components/common/LoadingSpinner';
 
 function App() {
   const { loading, isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const handleOnline = () => {
+      processOfflineQueue();
+    };
+    const handleOffline = () => {
+      toast('You are offline. Data will be saved locally.', { icon: '📵', duration: 4000 });
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    // Initial check on load
+    if (navigator.onLine) {
+      processOfflineQueue();
+    }
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   if (loading) return <LoadingSpinner />;
 

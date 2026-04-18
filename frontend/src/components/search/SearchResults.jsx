@@ -17,7 +17,7 @@ const SORT_OPTIONS = [
   { value: 'amount_asc', label: 'Lowest amount' },
 ];
 
-const SearchResults = ({ onClose }) => {
+const SearchResults = ({ onClose, initialQuery }) => {
   const [results, setResults] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
@@ -65,6 +65,14 @@ const SearchResults = ({ onClose }) => {
     setSearchQuery(query);
     executeSearch(query, 1);
   };
+
+  // Auto-trigger search when initialQuery is provided (from ExpandingSearchDock)
+  useEffect(() => {
+    if (initialQuery) {
+      setSearchQuery(initialQuery);
+      executeSearch(initialQuery, 1);
+    }
+  }, [initialQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };

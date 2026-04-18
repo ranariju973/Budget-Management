@@ -33,24 +33,15 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
   };
 
   return (
-    <div
-      className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors"
-      style={{
-        borderTop: '1px solid var(--color-border-subtle)',
-        backgroundColor: darkMode ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)',
-        backdropFilter: 'blur(24px) saturate(180%)',
-        WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-      }}
-    >
-      <div className="flex justify-center px-2 py-1">
+    <div className="fixed bottom-4 left-4 right-4 z-50 lg:hidden pb-safe pointer-events-none">
+      <div className="flex justify-center pointer-events-auto">
         <LimelightNav
           items={NAV_ITEMS}
           activeIndex={activeIndex}
           onTabChange={handleTabChange}
-          className="w-full border-0 rounded-none h-14"
-          iconContainerClassName="p-3"
-          iconClassName="w-5 h-5"
-          limelightClassName=""
+          className="w-full max-w-md rounded-xl h-16 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)]"
+          iconContainerClassName="p-2"
+          iconClassName="w-[22px] h-[22px]"
         />
       </div>
     </div>

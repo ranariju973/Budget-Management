@@ -1,24 +1,26 @@
 import { useTheme } from '../../context/ThemeContext';
 import {
-  FiGrid,
-  FiCreditCard,
-  FiArrowDownLeft,
-  FiArrowUpRight,
-  FiSearch,
-  FiUsers,
-} from 'react-icons/fi';
+  Home,
+  Search,
+  CreditCard,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Users,
+} from 'lucide-react';
+import { InteractiveMenu } from '@/components/ui/modern-mobile-menu';
 
 const navItems = [
-  { label: 'Dash', icon: FiGrid, section: 'dashboard' },
-  { label: 'Search', icon: FiSearch, section: 'search' },
-  { label: 'Expenses', icon: FiCreditCard, section: 'expenses' },
-  { label: 'Borrow', icon: FiArrowDownLeft, section: 'borrowing' },
-  { label: 'Lend', icon: FiArrowUpRight, section: 'lending' },
-  { label: 'Split', icon: FiUsers, section: 'split' },
+  { label: 'Dash', icon: Home, section: 'dashboard' },
+  { label: 'Search', icon: Search, section: 'search' },
+  { label: 'Expenses', icon: CreditCard, section: 'expenses' },
+  { label: 'Borrow', icon: ArrowDownLeft, section: 'borrowing' },
+  { label: 'Lend', icon: ArrowUpRight, section: 'lending' },
+  { label: 'Split', icon: Users, section: 'split' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
   const { darkMode } = useTheme();
+  const activeIndex = navItems.findIndex((item) => item.section === activeSection);
 
   return (
     <nav
@@ -30,26 +32,16 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
-      <div className="flex items-center justify-around px-2 py-2">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const isActive = activeSection === item.section;
-          return (
-            <button
-              key={item.section}
-              onClick={() => setActiveSection(item.section)}
-              className="flex flex-col items-center justify-center w-14 h-12 tap-effect"
-              style={{
-                color: isActive ? 'var(--color-text)' : 'var(--color-text-muted)',
-              }}
-            >
-              <Icon size={22} className={isActive ? 'stroke-[2.5px]' : 'stroke-2'} />
-              <span className="text-[10px] mt-1 font-medium tracking-tight">
-                {item.label}
-              </span>
-            </button>
-          );
-        })}
+      <div className="px-2 py-2">
+        <InteractiveMenu
+          items={navItems.map((item) => ({ label: item.label, icon: item.icon }))}
+          activeIndex={activeIndex >= 0 ? activeIndex : 0}
+          accentColor={darkMode ? '#ffffff' : '#111827'}
+          onItemClick={(index) => {
+            const targetSection = navItems[index]?.section;
+            if (targetSection) setActiveSection(targetSection);
+          }}
+        />
       </div>
     </nav>
   );

@@ -10,6 +10,7 @@ import JoinGroup from './pages/JoinGroup';
 import OAuthCallback from './pages/OAuthCallback';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import LoadingSpinner from './components/common/LoadingSpinner';
+import AuthSwitch from './components/ui/demo';
 import { setupDailyReminders } from './services/notificationService';
 
 import { App as CapacitorApp } from '@capacitor/app';
@@ -101,6 +102,10 @@ function App() {
         <Route
           path="/oauth-callback"
           element={isAuthenticated ? <Navigate to="/" replace /> : <OAuthCallback />}
+        />
+        <Route
+          path="/auth-switch-demo"
+          element={isAuthenticated ? <Navigate to="/" replace /> : <AuthSwitch />}
         />
 
         {/* Protected Routes */}

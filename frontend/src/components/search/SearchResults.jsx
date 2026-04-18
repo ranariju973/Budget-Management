@@ -17,7 +17,7 @@ const SORT_OPTIONS = [
   { value: 'amount_asc', label: 'Lowest amount' },
 ];
 
-const SearchResults = ({ onClose, initialQuery }) => {
+const SearchResults = ({ onClose }) => {
   const [results, setResults] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 });
   const [loading, setLoading] = useState(false);
@@ -65,14 +65,6 @@ const SearchResults = ({ onClose, initialQuery }) => {
     setSearchQuery(query);
     executeSearch(query, 1);
   };
-
-  // Auto-trigger search when initialQuery is provided (from ExpandingSearchDock)
-  useEffect(() => {
-    if (initialQuery) {
-      setSearchQuery(initialQuery);
-      executeSearch(initialQuery, 1);
-    }
-  }, [initialQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleFilterChange = (key, value) => {
     const newFilters = { ...filters, [key]: value };
@@ -191,7 +183,7 @@ const SearchResults = ({ onClose, initialQuery }) => {
                 style={{ backgroundColor: 'var(--color-surface)', color: 'var(--color-text)', border: '1px solid var(--color-border)' }}
               >
                 <option value="">Any month</option>
-                {['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'].map((m, i) => (
+                {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((m, i) => (
                   <option key={i + 1} value={i + 1}>{m}</option>
                 ))}
               </select>

@@ -3,9 +3,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { Capacitor } from '@capacitor/core';
 import { FiSun, FiMoon, FiLogOut, FiPieChart, FiDownload } from 'react-icons/fi';
-import { ExpandingSearchDock } from '../ui/expanding-search-dock-shadcnui';
 
-const Navbar = ({ setActiveSection, onSearch }) => {
+const Navbar = ({ setActiveSection }) => {
   const { user, logout, deleteAccount } = useAuth();
   const { darkMode, toggleTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -27,14 +26,7 @@ const Navbar = ({ setActiveSection, onSearch }) => {
           </span>
         </div>
 
-        <div className="flex items-center gap-3 relative">
-          <ExpandingSearchDock
-            placeholder="Search expenses, borrowings..."
-            onSearch={(query) => {
-              if (onSearch) onSearch(query);
-              setActiveSection('search');
-            }}
-          />
+        <div className="flex items-center gap-4 relative">
           {!Capacitor.isNativePlatform() && (
             <a
               href="/FinKart.apk"

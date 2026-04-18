@@ -1,26 +1,52 @@
+import { useEffect, useRef } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Home,
   Search,
   CreditCard,
-  ArrowDownLeft,
   ArrowUpRight,
   Users,
 } from 'lucide-react';
 import { InteractiveMenu } from '@/components/ui/modern-mobile-menu';
 
 const navItems = [
-  { label: 'Dash', icon: Home, section: 'dashboard' },
-  { label: 'Search', icon: Search, section: 'search' },
-  { label: 'Expenses', icon: CreditCard, section: 'expenses' },
-  { label: 'Borrow', icon: ArrowDownLeft, section: 'borrowing' },
-  { label: 'Lend', icon: ArrowUpRight, section: 'lending' },
-  { label: 'Split', icon: Users, section: 'split' },
+  { label: 'dash', icon: Home, section: 'dashboard' },
+  { label: 'search', icon: Search, section: 'search' },
+  { label: 'expenses', icon: CreditCard, section: 'expenses' },
+  { label: 'lend', icon: ArrowUpRight, section: 'lending' },
+  { label: 'split', icon: Users, section: 'split' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
   const { darkMode } = useTheme();
-  const activeIndex = navItems.findIndex((item) => item.section === activeSection);
+  const menuRef = useRef(null);
+
+  const handleMenuClickCapture = (event) => {
+    if (!(event.target instanceof Element)) return;
+
+    const clickedButton = event.target.closest('button.menu__item');
+    if (!clickedButton || !menuRef.current?.contains(clickedButton)) return;
+
+    const buttons = Array.from(menuRef.current.querySelectorAll('button.menu__item'));
+    const index = buttons.indexOf(clickedButton);
+    const targetSection = navItems[index]?.section;
+
+    if (targetSection) {
+      setActiveSection(targetSection);
+    }
+  };
+
+  useEffect(() => {
+    const index = navItems.findIndex((item) => item.section === activeSection);
+    if (index < 0) return;
+
+    const buttons = menuRef.current?.querySelectorAll('button.menu__item');
+    const targetButton = buttons?.[index];
+
+    if (targetButton && !targetButton.classList.contains('active')) {
+      targetButton.click();
+    }
+  }, [activeSection]);
 
   return (
     <nav
@@ -32,15 +58,10 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
-      <div className="px-2 py-2">
+      <div ref={menuRef} className="px-2 py-2" onClickCapture={handleMenuClickCapture}>
         <InteractiveMenu
           items={navItems.map((item) => ({ label: item.label, icon: item.icon }))}
-          activeIndex={activeIndex >= 0 ? activeIndex : 0}
           accentColor={darkMode ? '#ffffff' : '#111827'}
-          onItemClick={(index) => {
-            const targetSection = navItems[index]?.section;
-            if (targetSection) setActiveSection(targetSection);
-          }}
         />
       </div>
     </nav>

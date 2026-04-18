@@ -1,55 +1,39 @@
-import { useEffect, useRef } from 'react';
+import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Home,
   Search,
   CreditCard,
+  ArrowDownLeft,
   ArrowUpRight,
   Users,
 } from 'lucide-react';
-import { InteractiveMenu } from '@/components/ui/modern-mobile-menu';
+import { LimelightNav } from '@/components/ui/limelight-nav';
 
-const navItems = [
-  { label: 'dash', icon: Home, section: 'dashboard' },
-  { label: 'search', icon: Search, section: 'search' },
-  { label: 'expenses', icon: CreditCard, section: 'expenses' },
-  { label: 'lend', icon: ArrowUpRight, section: 'lending' },
-  { label: 'split', icon: Users, section: 'split' },
+const NAV_ITEMS = [
+  { id: 'dash', section: 'dashboard', icon: <Home />, label: 'Dash' },
+  { id: 'search', section: 'search', icon: <Search />, label: 'Search' },
+  { id: 'expenses', section: 'expenses', icon: <CreditCard />, label: 'Expenses' },
+  { id: 'borrow', section: 'borrowing', icon: <ArrowDownLeft />, label: 'Borrow' },
+  { id: 'lend', section: 'lending', icon: <ArrowUpRight />, label: 'Lend' },
+  { id: 'split', section: 'split', icon: <Users />, label: 'Split' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
   const { darkMode } = useTheme();
-  const menuRef = useRef(null);
 
-  const handleMenuClickCapture = (event) => {
-    if (!(event.target instanceof Element)) return;
+  // Map activeSection string → index for the LimelightNav controlled activeIndex
+  const activeIndex = Math.max(0, NAV_ITEMS.findIndex((item) => item.section === activeSection));
 
-    const clickedButton = event.target.closest('button.menu__item');
-    if (!clickedButton || !menuRef.current?.contains(clickedButton)) return;
-
-    const buttons = Array.from(menuRef.current.querySelectorAll('button.menu__item'));
-    const index = buttons.indexOf(clickedButton);
-    const targetSection = navItems[index]?.section;
-
-    if (targetSection) {
-      setActiveSection(targetSection);
+  const handleTabChange = (index) => {
+    const section = NAV_ITEMS[index]?.section;
+    if (section) {
+      setActiveSection(section);
     }
   };
 
-  useEffect(() => {
-    const index = navItems.findIndex((item) => item.section === activeSection);
-    if (index < 0) return;
-
-    const buttons = menuRef.current?.querySelectorAll('button.menu__item');
-    const targetButton = buttons?.[index];
-
-    if (targetButton && !targetButton.classList.contains('active')) {
-      targetButton.click();
-    }
-  }, [activeSection]);
-
   return (
-    <nav
+    <div
       className="fixed bottom-0 left-0 right-0 z-50 lg:hidden pb-safe transition-colors"
       style={{
         borderTop: '1px solid var(--color-border-subtle)',
@@ -58,13 +42,18 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
-      <div ref={menuRef} className="px-2 py-2" onClickCapture={handleMenuClickCapture}>
-        <InteractiveMenu
-          items={navItems.map((item) => ({ label: item.label, icon: item.icon }))}
-          accentColor={darkMode ? '#ffffff' : '#111827'}
+      <div className="flex justify-center px-2 py-1">
+        <LimelightNav
+          items={NAV_ITEMS}
+          activeIndex={activeIndex}
+          onTabChange={handleTabChange}
+          className="w-full border-0 rounded-none h-14"
+          iconContainerClassName="p-3"
+          iconClassName="w-5 h-5"
+          limelightClassName=""
         />
       </div>
-    </nav>
+    </div>
   );
 };
 

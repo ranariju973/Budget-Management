@@ -1,52 +1,59 @@
-import { useEffect, useRef } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
 import { useTheme } from '../../context/ThemeContext';
 import {
   Home,
-  Search,
   CreditCard,
+  ArrowDownLeft,
   ArrowUpRight,
   Users,
 } from 'lucide-react';
-import { InteractiveMenu } from '@/components/ui/modern-mobile-menu';
 
 const navItems = [
   { label: 'dash', icon: Home, section: 'dashboard' },
-  { label: 'search', icon: Search, section: 'search' },
   { label: 'expenses', icon: CreditCard, section: 'expenses' },
+  { label: 'borrow', icon: ArrowDownLeft, section: 'borrowing' },
   { label: 'lend', icon: ArrowUpRight, section: 'lending' },
   { label: 'split', icon: Users, section: 'split' },
 ];
 
 const BottomNav = ({ activeSection, setActiveSection }) => {
   const { darkMode } = useTheme();
-  const menuRef = useRef(null);
+  const textRefs = useRef([]);
+  const itemRefs = useRef([]);
 
-  const handleMenuClickCapture = (event) => {
-    if (!(event.target instanceof Element)) return;
+  const activeIndex = useMemo(
+    () => Math.max(0, navItems.findIndex((item) => item.section === activeSection)),
+    [activeSection]
+  );
 
-    const clickedButton = event.target.closest('button.menu__item');
-    if (!clickedButton || !menuRef.current?.contains(clickedButton)) return;
+  // Measure active text width and set --lineWidth CSS var for the underline
+  useEffect(() => {
+    const setLineWidth = () => {
+      const activeItemEl = itemRefs.current[activeIndex];
+      const activeTextEl = textRefs.current[activeIndex];
 
-    const buttons = Array.from(menuRef.current.querySelectorAll('button.menu__item'));
-    const index = buttons.indexOf(clickedButton);
+      if (activeItemEl && activeTextEl) {
+        const textWidth = activeTextEl.offsetWidth;
+        activeItemEl.style.setProperty('--lineWidth', `${textWidth}px`);
+      }
+    };
+
+    setLineWidth();
+    window.addEventListener('resize', setLineWidth);
+    return () => window.removeEventListener('resize', setLineWidth);
+  }, [activeIndex]);
+
+  const handleItemClick = (index) => {
     const targetSection = navItems[index]?.section;
-
     if (targetSection) {
       setActiveSection(targetSection);
     }
   };
 
-  useEffect(() => {
-    const index = navItems.findIndex((item) => item.section === activeSection);
-    if (index < 0) return;
-
-    const buttons = menuRef.current?.querySelectorAll('button.menu__item');
-    const targetButton = buttons?.[index];
-
-    if (targetButton && !targetButton.classList.contains('active')) {
-      targetButton.click();
-    }
-  }, [activeSection]);
+  const navStyle = useMemo(() => {
+    const activeColor = darkMode ? '#ffffff' : '#111827';
+    return { '--component-active-color': activeColor };
+  }, [darkMode]);
 
   return (
     <nav
@@ -58,11 +65,34 @@ const BottomNav = ({ activeSection, setActiveSection }) => {
         WebkitBackdropFilter: 'blur(24px) saturate(180%)',
       }}
     >
-      <div ref={menuRef} className="px-2 py-2" onClickCapture={handleMenuClickCapture}>
-        <InteractiveMenu
-          items={navItems.map((item) => ({ label: item.label, icon: item.icon }))}
-          accentColor={darkMode ? '#ffffff' : '#111827'}
-        />
+      <div className="px-2 py-2">
+        <nav className="menu" role="navigation" style={navStyle}>
+          {navItems.map((item, index) => {
+            const isActive = index === activeIndex;
+            const IconComponent = item.icon;
+
+            return (
+              <button
+                key={item.section}
+                type="button"
+                className={`menu__item ${isActive ? 'active' : ''}`}
+                onClick={() => handleItemClick(index)}
+                ref={(el) => (itemRefs.current[index] = el)}
+                style={{ '--lineWidth': '0px' }}
+              >
+                <div className="menu__icon">
+                  <IconComponent className="icon" />
+                </div>
+                <strong
+                  className={`menu__text ${isActive ? 'active' : ''}`}
+                  ref={(el) => (textRefs.current[index] = el)}
+                >
+                  {item.label}
+                </strong>
+              </button>
+            );
+          })}
+        </nav>
       </div>
     </nav>
   );
